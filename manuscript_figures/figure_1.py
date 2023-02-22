@@ -125,7 +125,7 @@ plt.legend(bbox_to_anchor= (-0.1,-0.5),loc='lower left')
 ax1.set_xticks([0,10])
 ax1.set_xticklabels(['Low','High'])
 ax1.set_yticks([0.2,2.8])
-ax1.set_yticklabels(['High','Low'])
+ax1.set_yticklabels(['Low','High'])
 ax1.text(0.01, 0.99, 'B',
         horizontalalignment='left',
         verticalalignment='top',

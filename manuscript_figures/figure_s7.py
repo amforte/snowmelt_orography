@@ -120,7 +120,7 @@ group_list1=['GC Unlinked','GC Unlinked','GC Unlinked','GC Unlinked','GC Unlinke
              'GC Linked','GC Linked','GC Linked','GC Linked','GC Linked','GC Linked']
 
 
-model_list2=['gc025u_10l','gc05u_10l','gc_stim_daily1g','gc2u_10l','gc4u_10l','gc8u_10l']
+model_list2=['gc025u_10l','gc05u_10l','gc1u_10l','gc2u_10l','gc4u_10l','gc8u_10l']
 prefix_list2=['ts_','ts_','ts_','ts_','ts_','ts_']
 descript_list2=['GC STIM Unlinked; 0.25 mm/yr','GC STIM Unlinked; 0.5 mm/yr','GC STIM Unlinked; 1 mm/yr',
                'GC STIM Unlinked; 2 mm/yr','GC STIM Unlinked; 4 mm/yr','GC STIM Unlinked; 8 mm/yr']
@@ -166,7 +166,7 @@ for i in range(len(model_list3)):
     rp_yint3.append(gcyi)
 rp_slp=rp_slp1+rp_slp2+rp_slp3
 rp_yint=rp_yint1+rp_yint2+rp_yint3
-fit_df=mc.comp_final_ts(group_list,col_list,shape_list,shape_filled_list,line_list,grp,rp_slp,rp_yint)
+[fit_df,_,_]=mc.comp_final_ts(group_list,col_list,shape_list,shape_filled_list,line_list,grp,rp_slp,rp_yint)
 
 # Generate supplemental figure
 f1=plt.figure(figsize=(8,4))

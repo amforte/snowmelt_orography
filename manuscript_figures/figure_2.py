@@ -32,6 +32,9 @@ def weibull_tail_fit(x,y,thresh):
 repo_location='/Users/aforte/Documents/GitHub/snowmelt_orography/geospatial_codes/'
 master_location='/Volumes/Choruh/Data/snowmelt_project/'
 
+## Requires gagesII data, available here:
+## https://cmerwebmap.cr.usgs.gov/catalog/item/5788f619e4b0d27deb389055
+
 # Load original
 gages2raster=pd.read_csv(repo_location+'gages2_wrr2_raster_values.csv')
 gages2real=pd.read_csv(repo_location+'gages2_real_ts.csv')
