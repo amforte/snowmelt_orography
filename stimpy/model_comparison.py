@@ -142,7 +142,7 @@ class ModelComparison:
             ax2=f1.add_subplot(gs[1,i])
             ax2.set_xlabel('Mean Runoff [mm/day]')
             if i==0:
-                ax2.set_ylabel('Variability')
+                ax2.set_ylabel('Shape Parameter')
             ax2.set_xlim((-0.25,12.1))
             ax2.set_ylim((0,2.5))
             # ax2.set_xscale('log')
@@ -370,7 +370,7 @@ class ModelComparison:
         plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
         plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
         # Initiate figure
-        f1=plt.figure(1,figsize=(8,8))
+        f1=plt.figure(figsize=(8,8))
         f1.set_dpi(250)
         gs=gridspec.GridSpec(6,self.num_models)
         num_panels=3
@@ -965,7 +965,7 @@ class ModelComparison:
 
         ax2=f1.add_subplot(1,2,2)
         ax2.set_xlabel('Erosion Rate [m/Myr]')
-        ax2.set_ylabel(r'$k_{sn}$-q [m]')        
+        ax2.set_ylabel(r'$k_{snQ}$ [m]')        
         
         
         f2=plt.figure(figsize=(8,6))
@@ -973,15 +973,15 @@ class ModelComparison:
 
         ax3=f2.add_subplot(1,3,1)
         ax3.set_xlabel('Erosion Rate [m/Myr]')
-        ax3.set_ylabel(r'$k_{sn}$-qp [m]')
+        ax3.set_ylabel(r'$k_{snQP}$ [m]')
         
         ax4=f2.add_subplot(1,3,2)
         ax4.set_xlabel('Erosion Rate [m/Myr]')
-        ax4.set_ylabel(r'$k_{sn}$-qr [m]')
+        ax4.set_ylabel(r'$k_{snQR}$ [m]')
         
         ax5=f2.add_subplot(1,3,3)
         ax5.set_xlabel('Erosion Rate [m/Myr]')
-        ax5.set_ylabel(r'$k_{sn}$-qp / $k_{sn}$-qr')        
+        ax5.set_ylabel(r'$k_{snQP}$ / $k_{snQR}$')        
         
         e_vec=np.logspace(2,4,100)
         

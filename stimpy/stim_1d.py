@@ -12,6 +12,7 @@ import time
 import glob
 import re
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from cmcrameri import cm
 from matplotlib import colors
 from matplotlib import cm as cmm
@@ -351,12 +352,7 @@ class Stim1D:
         for i in range(0,len(ts),n_step):
             ax1a.plot(x/1000,zout[i,:]/1000,c=cm.vik_r(col_vec(i)))
         ax1a.set_xlabel('Stream Distance [km]')
-        ax1a.set_ylabel('Elevation [km]')
-        # ax2a=ax1a.twinx()
-        # ax2a.set_ylabel('Mean Relief [km]')
-        # for i in range(0,len(ts),n_step):
-        #     ax2a.scatter(x_center/1000,rlf_Z[i,:]/1000,color=cm.vik_r(col_vec(i)),s=10)
-        # ax2a.tick_params(axis='y',labelcolor='k')        
+        ax1a.set_ylabel('Elevation [km]')      
         
         
         plt.subplot(3,2,3)
@@ -376,12 +372,7 @@ class Stim1D:
         for i in range(0,len(ts),n_step):
             ax1b.plot(x/1000,qout[i,:],c=cm.vik_r(col_vec(i)))
         ax1b.set_xlabel('Stream Distance [km]')
-        ax1b.set_ylabel('Mean Discharge [$m^{3}/s$]') 
-        # ax2b=ax1b.twinx()
-        # ax2b.set_ylabel('Mean Runoff [mm/day]')
-        # for i in range(0,len(ts),n_step):
-        #     ax2b.scatter(x_center/1000,mrout[i,:],color=cm.vik_r(col_vec(i)),s=10)
-        # ax2b.tick_params(axis='y',labelcolor='k')    
+        ax1b.set_ylabel('Mean Discharge [$m^{3}/s$]')    
 
         plt.subplot(3,2,4)
         plt.plot(chi,z0/1000,c='k',linestyle=':')
@@ -419,15 +410,7 @@ class Stim1D:
         plt.xlabel('Stream Distance [km]')
         plt.ylabel('Model Time [Myr]')
         cbar2.ax.set_ylabel('Variability') 
-
-        # ax3=plt.subplot(3,2,3)
-        # im3=plt.imshow(np.flipud(eout),extent=[x[0]/1000,x[-1]/1000,ts[0]/1e6,ts[-1]/1e6],
-        #            cmap=cm.hawaii_r,norm=colors.Normalize(vmin=np.min(eout.ravel()),vmax=np.percentile(eout.ravel(),99)),aspect='auto')
-        # cbar3=plt.colorbar(im3,ax=ax3)
-        # plt.xlabel('Stream Distance [km]')
-        # plt.ylabel('Model Time [Myr]')
-        # cbar3.ax.set_ylabel('Instantaneous Erosion Rate [mm/yr]')  
-        
+       
         ax3=plt.subplot(3,2,3)
         im3=plt.imshow(np.flipud(excdP),extent=[x[0]/1000,x[-1]/1000,ts[0]/1e6,ts[-1]/1e6],
                    cmap=cm.hawaii_r,norm=colors.Normalize(vmin=0,vmax=np.max(excdP.ravel())),aspect='auto')
@@ -464,50 +447,135 @@ class Stim1D:
             plt.ylabel('Model Time [Myr]')
             cbar6.ax.set_ylabel('Percent Runoff as Snow') 
         
-        
-        # f2=plt.figure(figsize=(20,15))
-        # plt.subplot(3,2,1)
-        # plt.title(title)
-        # # plt.plot(x_center/1000,z0/1000,c='k',linestyle=':')
-        # for i in range(0,len(ts),n_step):
-        #     plt.plot(x_center/1000,zcout[i,:]/1000,c=cm.vik_r(col_vec(i)))
-        # plt.xlabel('Binned Stream Distance [km]')
-        # plt.ylabel('Binned Elevation [km]')        
-
-        # plt.subplot(3,2,3)
-        # for i in range(0,len(ts),n_step):
-        #     plt.plot(x_center/1000,mrout[i,:],c=cm.vik_r(col_vec(i)))
-        # plt.xlabel('Binned Stream Distance [km]')
-        # plt.ylabel('Binned Mean Runoff [mm/day]')
-
-        # plt.subplot(3,2,5)
-        # for i in range(0,len(ts),n_step):
-        #     plt.plot(x_center/1000,crout[i,:],c=cm.vik_r(col_vec(i)))
-        # plt.xlabel('Binned Stream Distance [km]')
-        # plt.ylabel('Binned Variability')
-        
-        # plt.subplot(3,2,2)
-        # for i in range(0,len(ts),n_step):
-        #     plt.scatter(mrout[i,:],crout[i,:],color=cm.vik_r(col_vec(i)))
-        # plt.xlabel('Binned Mean Runoff [mm/day]')
-        # plt.ylabel('Binned Variability')
-        
-        # if runoff_pattern=='emp':
-        #     rlf_Z=d['rlf_Z']
-        #     max_Z=d['max_Z']
-        #     snp=d['snp']
-        #     plt.subplot(3,2,4)
-        #     for i in range(0,len(ts),n_step):
-        #         plt.scatter(rlf_Z[i,:]/1000,mrout[i,:],color=cm.vik_r(col_vec(i)))
-        #     plt.xlabel('Binned Local Relief [km]') 
-        #     plt.ylabel('Binned Mean Runoff [mm/day]')
-       
-
-        #     plt.subplot(3,2,6)
-        #     for i in range(0,len(ts),n_step):
-        #         plt.scatter(max_Z[i,:]/1000,snp[i,:],color=cm.vik_r(col_vec(i)))
-        #     plt.xlabel('Binned Max Elevation [km]') 
-        #     plt.ylabel('Binned Snow Percentage')
          
         f1.canvas.draw()
         f2.canvas.draw()
+        
+    def plot_profile_results2(self,title,num_ts,lower_ts=0,upper_ts=np.inf,
+                             trim_to_ss=False,ss_value=1e-1):
+        
+        d=self.parse_results(lower_ts,upper_ts,trim_to_ss,ss_value)
+        
+        # Unpack
+        runoff_pattern=d['runoff_pattern']
+        ts=d['ts']
+        x=d['x']
+        x_center=d['x_center']
+        z0=d['z0']
+        dt=d['dt']
+        fts=d['freq_to_save']
+        A=d['A']
+        slp0=d['slp0']
+        slp=d['sout']
+        zout=d['zout']
+        zcout=d['zcout']
+        chi=d['chi']
+        eCout=d['eCout']
+        dout=d['dout']
+        eout=d['eout']*(-1)*(10*100)*(dt*365)
+        qout=d['qout']
+        mrout=d['mrout']
+        crout=d['crout']
+        rlf_Z=d['rlf_Z']
+        
+        # Calculate average erosion rate
+        avgE=np.diff(eCout,axis=0)
+        avgE=np.concatenate((eCout[0,:].reshape((1,len(eCout[0,:]))),avgE),axis=0)
+        avgE=((avgE*(-1))/fts)*(10*100)
+        
+        
+        # Calculate percentage of days where erosion threshold is exceeded
+        excdP=np.diff(dout,axis=0)
+        excdP=np.concatenate((dout[0,:].reshape((1,len(dout[0,:]))),excdP),axis=0)
+        excdP=excdP/(fts*365)
+        
+        n_step=int(len(ts)/num_ts)
+        
+        # Begin plotting
+        col_vec=colors.Normalize(vmin=0,vmax=len(ts)-1)
+        
+        SMALL_SIZE = 8
+        MEDIUM_SIZE = 10
+        BIGGER_SIZE = 12
+        plt.rc('font', size=SMALL_SIZE,family='Futura')          # controls default text sizes
+        plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
+        plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+        plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+        plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+        plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+        plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+        # Initiate figure
+        f1=plt.figure(figsize=(10,5))
+        f1.set_dpi(250)
+
+
+        gs=gridspec.GridSpec(2,12)
+
+        ax3=f1.add_subplot(gs[0,0:4])
+        ax3.plot(x/1000,z0/1000,c='k',linestyle=':')
+        for i in range(0,len(ts),n_step):
+            ax3.plot(x/1000,zout[i,:]/1000,c=cm.batlowK_r(col_vec(i)),linewidth=0.75)
+        ax3.set_xlabel('Stream Distance [km]')
+        ax3.set_ylabel('Elevation [km]')  
+        plt.xlim((0,np.max(x)/1000))        
+
+        ax1=f1.add_subplot(gs[0,4:8])
+        plt.title(title)
+        ax1.plot(chi,z0/1000,c='k',linestyle=':')
+        for i in range(0,len(ts),n_step):
+            ax1.plot(chi,zout[i,:]/1000,c=cm.batlowK_r(col_vec(i)),linewidth=0.75)
+        plt.xlabel(r'$\chi$')
+        plt.ylabel('Elevation [km]')
+        
+        ax2=f1.add_subplot(gs[0,8:12])
+        ax2.plot(A[1:len(A)],slp0[1:len(A)],c='k',linestyle=':')
+        for i in range(0,len(ts),n_step):
+            ax2.plot(A[1:len(A)],slp[i,1:len(A)],c=cm.batlowK_r(col_vec(i)),linewidth=0.75)
+        plt.xlabel(r'Drainage Area [$m^{2}$]')
+        plt.ylabel('Slope [m/m]')
+        plt.xscale('log')
+        plt.yscale('log')
+        norm=colors.Normalize(vmin=np.min(ts)/1e6,vmax=np.max(ts)/1e6)
+        cbar1=plt.colorbar(cmm.ScalarMappable(norm=norm,cmap=cm.batlowK_r),ax=ax2)
+        cbar1.ax.set_ylabel('Time [Myrs]')
+
+        ax4=f1.add_subplot(gs[1,0:3])
+        im4=plt.imshow(np.flipud(avgE),extent=[x[0]/1000,x[-1]/1000,ts[0]/1e6,ts[-1]/1e6],
+                    cmap=cm.acton,norm=colors.Normalize(vmin=np.min(avgE.ravel()),vmax=np.max(avgE.ravel())),aspect='auto')
+        cbar4=plt.colorbar(im4,ax=ax4)
+        plt.xlabel('Stream Distance [km]')
+        plt.ylabel('Model Time [Myr]')
+        ax4.set_xticks(np.linspace(0,np.max(x)/1000,6))
+        cbar4.ax.set_ylabel('Average Erosion Rate [mm/yr]')
+        
+        ax7=f1.add_subplot(gs[1,3:6])
+        im3=plt.imshow(np.flipud(excdP),extent=[x[0]/1000,x[-1]/1000,ts[0]/1e6,ts[-1]/1e6],
+                    cmap=cm.hawaii_r,norm=colors.Normalize(vmin=0,vmax=np.max(excdP.ravel())),aspect='auto')
+        cbar3=plt.colorbar(im3,ax=ax7)
+        plt.xlabel('Stream Distance [km]')
+        ax7.set_xticks(np.linspace(0,np.max(x)/1000,6))
+        # plt.ylabel('Model Time [Myr]')
+        cbar3.ax.set_ylabel('Ero Threshold Excd Freq')  
+        
+        ax6=f1.add_subplot(gs[1,6:9])
+        im2=plt.imshow(np.flipud(crout),extent=[x_center[0]/1000,x_center[-1]/1000,ts[0]/1e6,ts[-1]/1e6],
+                    cmap=cm.lapaz,norm=colors.Normalize(vmin=np.min(crout.ravel()),vmax=np.max(crout.ravel())),aspect='auto')
+        cbar2=plt.colorbar(im2,ax=ax6)
+        plt.xlabel('Stream Distance [km]')
+        ax6.set_xticks(np.linspace(0,np.max(x)/1000,6))
+        # plt.ylabel('Model Time [Myr]')
+        cbar2.ax.set_ylabel('Shape Parameter') 
+
+        ax8=f1.add_subplot(gs[1,9:12])
+        im1=plt.imshow(np.flipud(mrout),extent=[x_center[0]/1000,x_center[-1]/1000,ts[0]/1e6,ts[-1]/1e6],
+                    cmap=cm.vik_r,norm=colors.Normalize(vmin=np.min(mrout.ravel()),vmax=np.max(mrout.ravel())),aspect='auto')
+        cbar1=plt.colorbar(im1,ax=ax8)
+        plt.xlabel('Stream Distance [km]')
+        ax8.set_xticks(np.linspace(0,np.max(x)/1000,6))
+        # plt.ylabel('Model Time [Myr]')
+        cbar1.ax.set_ylabel('Mean Runoff [mm/day]')
+
+        plt.tight_layout()
+        plt.rcdefaults()
+        return f1
+        
