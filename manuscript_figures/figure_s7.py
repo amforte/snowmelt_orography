@@ -196,3 +196,5 @@ cbar1.ax.set_ylabel(r'Log Drainage Area [$km^{2}$]')
 
 plt.tight_layout()
 plt.rcdefaults()
+
+f1.savefig('figure_s7.pdf',dpi="figure")

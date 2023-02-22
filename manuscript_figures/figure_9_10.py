@@ -236,3 +236,6 @@ ax8.text(0.95, 0.99, 'D',
 f1.tight_layout()
 f2.tight_layout()
 plt.rcdefaults()
+
+f1.savefig('figure_9.pdf',dpi="figure")
+f2.savefig('figure_10.pdf',dpi="figure")

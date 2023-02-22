@@ -18,4 +18,6 @@ prefix_list=['ts_','ts_']
 descript_list=['GC1U','GC1L']
 
 mc=st.ModelComparison(master_location,model_list,prefix_list,descript_list)
-mc.comp_profile_evol(25,3.25,7,25,[np.inf,2.1e6])
+f1=mc.comp_profile_evol(25,3.25,7,25,[np.inf,2.1e6])
+
+f1.savefig('figure_6.pdf',dpi="figure")

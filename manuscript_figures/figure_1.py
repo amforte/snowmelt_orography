@@ -153,6 +153,8 @@ ax3.text(0.01, 0.99, 'C',
 plt.tight_layout(pad=0, w_pad=-2, h_pad=0.1)
 plt.rcdefaults()
 
+f1.savefig('figure_1.pdf',dpi="figure")
+
 
 
 

@@ -244,3 +244,6 @@ for i in range(len(bv)-1):
     
 plt.tight_layout()
 plt.rcdefaults()
+
+f1.savefig('figure_3.pdf',dpi="figure")
+f2.savefig('figure_s1.pdf',dpi="figure")

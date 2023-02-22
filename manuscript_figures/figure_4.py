@@ -349,3 +349,4 @@ ax5.text(0.01, 0.99, 'E',
 plt.tight_layout()
 plt.rcdefaults()
 
+f1.savefig('figure_4.pdf',dpi="figure")

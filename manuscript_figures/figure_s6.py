@@ -194,5 +194,7 @@ for i in range(len(model_list3)):
 rp_slp=rp_slp1+rp_slp2+rp_slp3
 rp_yint=rp_yint1+rp_yint2+rp_yint3
 
-fit_df=mc.comp_final_ts(group_list,col_list,shape_list,shape_filled_list,line_list,grp,rp_slp,rp_yint)
+[fit_df,f1,f2]=mc.comp_final_ts(group_list,col_list,shape_list,shape_filled_list,line_list,grp,rp_slp,rp_yint)
 fit_df.to_csv('ksn_e_fit.csv',index=False)
+
+f2.savefig('figure_s6.pdf',dpi="figure")

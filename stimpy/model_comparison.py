@@ -240,6 +240,7 @@ class ModelComparison:
         
         plt.tight_layout()
         plt.rcdefaults()
+        return f1
         
     def model_setup_plot(self,yr_list,rec_length,num_trials):
         type_list=self.determine_type(yr_list)
@@ -465,6 +466,7 @@ class ModelComparison:
         
         f1.tight_layout()
         plt.rcdefaults()
+        return f1
             
     def comp_profile_evol(self,num_ts,max_z,max_e,max_q,clip_ts):
         # Build ts list
@@ -602,6 +604,7 @@ class ModelComparison:
             
         plt.tight_layout()
         plt.rcdefaults()
+        return f1
         
         
     def time_to_ss(self,grp_num,line_style):
@@ -1081,7 +1084,7 @@ class ModelComparison:
         
         plt.rcdefaults()
         
-        return df
+        return df,f1,f2
         
     
     def plot_individual_ts(self,yr_list):
@@ -1568,7 +1571,7 @@ class ModelComparison:
         
         ax5=plt.subplot(3,2,5)
         ax5.set_xlabel('Time [Myr]')
-        ax5.set_ylabel('Variability at Outlet')
+        ax5.set_ylabel('Shape Parameter')
  
         for i in range(self.num_models):
             if d_list[i]['runoff_pattern']=='emp':
@@ -1626,6 +1629,7 @@ class ModelComparison:
         
         plt.tight_layout()
         plt.rcdefaults()
+        return f1
 
         
             

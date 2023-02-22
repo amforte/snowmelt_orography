@@ -19,4 +19,6 @@ col_list=['black','black','royalblue','royalblue','orange','orange']
 style_list=['-','--','-','--','-','--']
 
 mc=st.ModelComparison(master_location,model_list,prefix_list,descript_list)
-mc.plot_all2(col_list,style_list,sample_freq=10)
+f1=mc.plot_all2(col_list,style_list,sample_freq=10)
+
+f1.savefig('figure_7.pdf',dpi="figure")

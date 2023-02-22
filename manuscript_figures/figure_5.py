@@ -17,4 +17,5 @@ prefix_list=['ts_','ts_']
 descript_list=['GC1U - 1 Myr','GC1L - 0.6 Myr']
 
 mc=st.ModelComparison(master_location,model_list,prefix_list,descript_list)
-mc.comp_model_setup_plot([1000000,600000],100,500,seed=15,max_z=1250)
+f1=mc.comp_model_setup_plot([1000000,600000],100,500,seed=15,max_z=1250)
+f1.savefig('figure_5.pdf',dpi="figure")
