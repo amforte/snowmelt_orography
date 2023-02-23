@@ -11,6 +11,10 @@ import numpy as np
 import pandas as pd
 import rasterio
 
+## Requires:
+## Various rasters from the Hydrosheds v1 dataset, available here:
+## https://www.hydrosheds.org/hydrosheds-core-downloads
+
 master_location='/Users/aforte/Documents/Python/snowmelt/'
 # master_location='/Volumes/Choruh/Data/snowmelt_project/'
 

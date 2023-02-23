@@ -30,6 +30,10 @@ def weibull_tail_fit(x,y,thresh):
     s=np.exp(-1*lin[1]/c)
     return c,s
 
+## Requires:
+## Water Resources Reanalysis v2 - WaterGAP3 Data, available here:
+## http://www.earth2observe.eu/
+
 ## Define master location
 master_location='/Volumes/Choruh/Data/snowmelt_project/'
 

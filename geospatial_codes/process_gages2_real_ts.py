@@ -27,6 +27,10 @@ def weibull_tail_fit(x,y,thresh):
     s=np.exp(-1*lin[1]/c)
     return c,s 
 
+## Requires: 
+## gagesII data, available here:
+## https://cmerwebmap.cr.usgs.gov/catalog/item/5788f619e4b0d27deb389055
+
 # Set master location
 master_location='/Volumes/Choruh/Data/snowmelt_project/'
 gages2=pd.read_csv('gages2_wrr2_raster_values.csv')

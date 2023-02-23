@@ -38,11 +38,19 @@ def raster_clip_stat_gages(shape_name,raster_name):
         min_val[i]=np.nanmin(out_array)
     return gdf,mn_val,max_val,min_val
 
+## Requires: 
+## gagesII data, available here:
+## https://cmerwebmap.cr.usgs.gov/catalog/item/5788f619e4b0d27deb389055
+## global 30 second topography, available here:
+## https://www.worldclim.org/data/worldclim21.html
+## global ET dataset, available here:
+## https://figshare.com/articles/dataset/Global_Aridity_Index_and_Potential_Evapotranspiration_ET0_Climate_Database_v2/7504448/4
+
 
 #################
 ## Define rasters
 master_location='/Volumes/Choruh/Data/snowmelt_project/'
-dem_raster=master_location+'srtm30_plus/topo30_wrap.tif'
+dem_raster=master_location+'srtm30_plus/wc2.1_30s_elev.tif'
 et_an_raster=master_location+'Global-AI_ET0_v3_annual/et0_v3_yr.tif'
 
 #################

@@ -37,6 +37,10 @@ def raster_clip_stat_gages(shape_name,raster_name):
     return gdf,mn_val,std_val
 
 
+## Requires: 
+## gagesII data, available here:
+## https://cmerwebmap.cr.usgs.gov/catalog/item/5788f619e4b0d27deb389055
+
 #################
 ## Define rasters
 master_location='/Volumes/Choruh/Data/snowmelt_project/'
