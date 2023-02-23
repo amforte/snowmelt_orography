@@ -1,6 +1,6 @@
 # ReadMe #
 
-This is the ReadMe for the GitHub repository that contains supplemental data and codes for the in review manuscript "Stochastic in space and time: Feedback between bedrock river incision and orographic patterns in runoff variability" by Forte & Rossi submitted to the Journal of Geophysical Research - Earth Surface. Below are brief descriptions of categories of items included in this repository.
+This is the ReadMe for the GitHub repository that contains supplemental data and codes for the in review manuscript "Stochastic in space and time: Feedback between bedrock river incision and orographic patterns in runoff variability" by Forte & Rossi submitted to the Journal of Geophysical Research - Earth Surface. Below are brief descriptions of categories of items included in this repository. Note that the majority of processed data and all individual model results are hosted in a separate [Zenodo Repository](https://doi.org/10.5281/zenodo.7665887).
 
 ## Repository Contents
 ### geospatial_codes
@@ -14,7 +14,7 @@ Python codes for the 1D stocthastic threshold incision model
 
 ## Notes
 ### Raw Data
-This repository primarily includes processing scripts to generate the processed datasets or figures, but it does include some of the processed data in the form of various data tables that are used in some of the scripts. Larger derived processed data and model outputs are hosted in a separate repository available on the related [Figshare Repository]. These codes make use of a variety of publically available datasets (e.g., WaterGAP3 from Water Resources Reanalysis v2, GAGES II, etc.) that we do not rehost as we do not have the rights to distribute these data. We do provide the processing scripts that produced the derived products and those derived products.
+This repository primarily includes processing scripts to generate the processed datasets or figures, but it does include some of the processed data in the form of various data tables that are used in some of the scripts. Larger derived processed data and model outputs are hosted in a separate repository available on the related [Zenodo Repository](https://doi.org/10.5281/zenodo.7665887). These codes make use of a variety of publically available datasets (e.g., WaterGAP3 from Water Resources Reanalysis v2, GAGES II, etc.) that we do not rehost as we do not have the rights to distribute these data. We do provide the processing scripts that produced the derived products and those derived products.
 ### Languages and Dependencies
 The majority of the repository is written in Python, but there are isolated processing scripts written in Matlab. Below we list dependencies for the respective sets of scripts.
 #### Python Dependencies
