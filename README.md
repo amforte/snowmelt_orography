@@ -4,11 +4,11 @@ This is the ReadMe for the GitHub repository that contains supplemental data and
 
 ## Repository Contents
 ### geospatial_codes
-Processing codes for analyzing either WaterGAP3 or GAGES II datasets and/or derivatives of these datasets.
+Processing codes for analyzing either WaterGAP3 or GAGES II datasets and/or derivatives of these datasets. Majority of results of these scripts are stored in the related [Zenodo Repository](https://doi.org/10.5281/zenodo.7665887).
 ### manuscript_figures
 Codes for generating the main text and supplmental figures for the in review manuscript
 ### model_runs
-Model run scripts for all of the presented models. Note that outputs of the model are provided in the related [Figshare Repository].
+Model run scripts for all of the presented models. Note that outputs of the model are provided in the related [Zenodo Repository](https://doi.org/10.5281/zenodo.7665887).
 ### stimpy
 Python codes for the 1D stocthastic threshold incision model
 
