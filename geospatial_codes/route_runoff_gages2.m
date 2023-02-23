@@ -1,5 +1,10 @@
 function route_runoff_gages2(strt)
-	% Requires an API key from OpenTopography that is input as api_key='string';
+	% Requires: 
+	% An API key from OpenTopography that is input as api_key='string';
+	% gagesII data, available here:
+	% https://cmerwebmap.cr.usgs.gov/catalog/item/5788f619e4b0d27deb389055
+	% Water Resources Reanalysis v2 - WaterGAP3 Data, available here:
+	% http://www.earth2observe.eu/
 
 	% Load shapefile
 	shp=shaperead(['boundaries_shapefiles_by_aggeco' filesep 'bas_ref_all_wgs84.shp']);
