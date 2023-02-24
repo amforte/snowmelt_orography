@@ -14,9 +14,10 @@ import rasterio
 ## Requires:
 ## Various rasters from the Hydrosheds v1 dataset, available here:
 ## https://www.hydrosheds.org/hydrosheds-core-downloads
+## Also requires producing a relief raster from the hydrosheds elevation dataset
+## This was done in GRASS using a circular moving 17 member neighborhood calculating the range of the dataset
 
-master_location='/Users/aforte/Documents/Python/snowmelt/'
-# master_location='/Volumes/Choruh/Data/snowmelt_project/'
+master_location='/Volumes/Choruh/Data/snowmelt_project/'
 
 fh=Dataset(master_location+'wrr2_derived_v2.nc')
 
