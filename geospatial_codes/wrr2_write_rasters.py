@@ -1,8 +1,13 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
+Script written by Adam M. Forte
+aforte8@lsu.edu
 
-This is a temporary script file.
+This script reads the output of 'wrr2_derived_make_table_v3.py' and produces both native
+0.25 degree scale rasters for a variety of processed versions of WaterGAP3, but also
+produces "upscaled" rasters that are a higher resolution, more suitable for use in clipping
+by watershed boundaries.
 """
 
 from netCDF4 import Dataset

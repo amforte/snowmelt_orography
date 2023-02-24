@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Aug 22 15:01:44 2022
+Script written by Adam M. Forte
+aforte8@lsu.edu
 
-@author: aforte
+This script reads the rasters produceed by 'wrr2_write_rasters.py' to clip
+out areas within GagesII watersheds and calculate mean values. Compiles these
+and saves them in a text file, 'gages2_wrr2_raster_values.csv'
 """
 
 import numpy as np

@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 11 08:24:11 2022
+Script written by Adam M. Forte
+aforte8@lsu.edu
 
-@author: aforte
+This script processes individual pixels within the global daily WaterGAP3 
+timeseries and calculates various time series quantities (e.g., mean surface runoff,
+mean snowmelt runoff, etc.) and saves them in a single netcdf4 file, 'wrr2_derived_Q.nc'
 """
 
 from netCDF4 import Dataset,num2date

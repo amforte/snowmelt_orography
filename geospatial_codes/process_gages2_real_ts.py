@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Sep  6 20:08:49 2022
+Script written by Adam M. Forte
+aforte8@lsu.edu
 
-@author: aforte
+This script reads the individual timeseries data for discharge records
+from GagesII basins and compiles timeseries values (e.g., mean runoff) in
+a single textfile 'gages2_real_ts.csv'
 """
 import pandas as pd
 import numpy as np

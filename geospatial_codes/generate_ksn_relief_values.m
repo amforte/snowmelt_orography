@@ -1,3 +1,11 @@
+% Written by Adam M. Forte
+% aforte8@lsu.edu
+%
+% This script grabs DEMs from OpenTopography for the threee study areas used in the paper
+% and then runs through an automated routine to extract individual watersheds from within
+% these regions and calculates various statistics. Produces three datatables corresponding
+% to each region.
+%
 % Requires 
 % API key from OpenTopography that is input as api_key='string';
 % TopoToolbox and Topographic-Analysis-Kit (and the required toolboxes for those)

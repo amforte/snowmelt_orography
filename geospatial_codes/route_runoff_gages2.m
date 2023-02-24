@@ -1,4 +1,12 @@
 function route_runoff_gages2(strt)
+	% Written by Adam M. Forte
+	% aforte8@lsu.edu
+	%
+	% This function downloads DEMs from OpenTopography that cover individual drainage basins
+	% within a select portion of the HCDN-2009 subset of GagesII and then uses daily WaterGAP3
+	% rasters to route runoff to the outlet of individual watersheds and builds an expected
+	% daily discharge and runoff record for each watershed. 	
+	%
 	% Requires: 
 	% An API key from OpenTopography that is input as api_key='string';
 	% gagesII data, available here:

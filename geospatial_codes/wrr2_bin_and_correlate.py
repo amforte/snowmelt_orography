@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 14 19:53:53 2022
+Script written by Adam M. Forte
+aforte8@lsu.edu
 
-@author: aforte
+This script reads the output of 'wrr2_derived_make_table_v3.py' and 'wrr2_block_proc_v2.py' 
+to calculate global binned correlations between relief and mean runoff and maximum elevation and
+snowmelt.
 """
 
 import pandas as pd

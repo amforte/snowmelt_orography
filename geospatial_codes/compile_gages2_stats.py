@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Sep 11 14:46:17 2022
+Script written by Adam M. Forte
+aforte8@lsu.edu
 
-@author: aforte
+This script reads uses the outlines of GagesII watersheds and pre-calculated
+values from the GagesII dataset to calculate and compile basic topographic and
+climatic details for the GagesII watersheds.
 """
 
 import numpy as np

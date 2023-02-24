@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Dec  8 07:27:04 2022
+Script written by Adam M. Forte
+aforte8@lsu.edu
 
-@author: aforte
+This script reads the outputs from 'generate_ksn_relief_values.m' and generates
+relationships between ksn and relief for use within the stimpy model.
 """
 
 import pandas as pd

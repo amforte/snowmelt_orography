@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Nov  9 13:13:38 2022
+Script written by Adam M. Forte
+aforte8@lsu.edu
 
-@author: aforte
+This script reads the output of 'wrr2_derived_make_table_v3.py' and generates the
+relationships between relief and mean runoff and maximum elevation and snowmelt 
+used within the stimpy model to link growing topography to runoff.
 """
 import pandas as pd
 import numpy as np

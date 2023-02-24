@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu May 12 14:36:12 2022
+Script written by Adam M. Forte
+aforte8@lsu.edu
 
-@author: aforte
+This script reads the outputs of 'wrr2_block_proc_v2.py' and 'wrr2_block_proc_Q.py'
+and produces the 'wrr2_derived_data_v3.csv' read by multiple other programs.
 """
 
 from netCDF4 import Dataset
