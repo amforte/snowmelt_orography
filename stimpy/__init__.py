@@ -27,3 +27,5 @@ __all__ = ["StimSteady",
            "Stim1D",
            "Spim1D",
            "ModelComparison"]
+__version__="1.0.0"
+__author__="Adam M. Forte"
