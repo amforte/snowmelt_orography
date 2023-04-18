@@ -97,22 +97,15 @@ global_perc_base=df_global['qsb']/df_global['mean_runoff']
 # Calculate indices
 grlf=df_global['max_z']-df_global['min_z']
 
-# Set color
-temp_cutoff=2
-vmin=temp_cutoff-34
-vmax=temp_cutoff+34
-
 # Set cutoffs
 perc_cutoff=0.275
 percb_cutoff=0.25
-
 
 rem_idx=(grlf<=500) | (df_global['mean_z']<=250) | (global_perc_base>percb_cutoff) | (df_global['mean_rlf']<250)
 df_global_s=df_global.drop(df_global.index[rem_idx])
 df_global_s=df_global_s.reset_index(drop=True)
 global_perc_snow=df_global_s['qsm']/df_global_s['mean_runoff']
-# Set cnorms
-cnorm=colors.Normalize(vmin=vmin,vmax=vmax)
+
 
 # Set vector
 r=np.linspace(0.1,25,100)
