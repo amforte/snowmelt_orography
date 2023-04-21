@@ -18,6 +18,7 @@ import matplotlib.gridspec as gridspec
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from scipy import optimize
+import string
 
 
 def linear(B,x):
@@ -180,11 +181,23 @@ f2.set_dpi(250)
 plt.rc('axes', titlesize=SMALL_SIZE) 
 plt.rc('axes', labelsize=SMALL_SIZE) 
 
+letters=list(string.ascii_uppercase)
+
 for i in range(len(bv)-1):
     ax1=plt.subplot(4,4,i+1)
     gidx=(global_perc_snow>=bv[i]) & (global_perc_snow<bv[i+1]) & (df_global_s['r_c1']>0)
+    g2idx1=(perc_snow>=bv[i]) & (perc_snow<bv[i+1])
+    if i==0:
+        ax1.scatter(df_hcdn.loc[g2idx1,'SlicedMeanR'],df_hcdn.loc[g2idx1,'SlicedRC1'],zorder=2,s=5,c='k',label='HCDN-2009')
+    else:
+        ax1.scatter(df_hcdn.loc[g2idx1,'SlicedMeanR'],df_hcdn.loc[g2idx1,'SlicedRC1'],zorder=2,s=5,c='k')
     sc1=plt.hist2d(df_global_s.loc[gidx,'mean_runoff'],df_global_s.loc[gidx,'r_c1'],[xb,yb],norm=colors.LogNorm(vmin=1,vmax=500),cmap=cm.lajolla)
     
+    ax1.text(0.90, 0.15, letters[i],
+            horizontalalignment='left',
+            verticalalignment='top',
+            transform=ax1.transAxes,
+            fontsize=12,fontweight='extra bold')
     
     fdlog=odr.Data(np.log10(df_global_s.loc[gidx,'mean_runoff']),np.log10(df_global_s.loc[gidx,'r_c1']))
     odrlog=odr.ODR(fdlog,linmod,beta0=[0.1,10])
@@ -233,7 +246,7 @@ for i in range(len(bv)-1):
     plt.ylim((0,2.5))
     plt.legend(loc='best')
     
-    plt.title(str(np.round(bv[i]*100,0))+' < % of Snowmelt Runoff <'+str(np.round(bv[i+1]*100,0))) 
+    plt.title(str(np.round(bv[i],2))+' < Snowmelt Fraction <'+str(np.round(bv[i+1],2))) 
     
 plt.tight_layout()
 plt.rcdefaults()
