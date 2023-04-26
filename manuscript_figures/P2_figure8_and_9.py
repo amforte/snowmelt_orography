@@ -93,15 +93,16 @@ ax4.axhline(0.5,c='k',linestyle=':')
 ax4.set_xlim((-200,10200))
 
 f2=plt.figure(figsize=(8,5))
+f2.set_dpi(250)
 gs2=gridspec.GridSpec(2,2)
 
 ax5=f2.add_subplot(gs2[0,0])
-ax5.set_xlabel(r'1/n : $k_{sn}$')
+ax5.set_xlabel(r'$\Phi$ (1/n) : $k_{sn}$')
 ax5.set_ylabel('Shape Parameter')
 ax5.set_xlim((0.01,0.45))
 
 ax6=f2.add_subplot(gs2[0,1])
-ax6.set_xlabel(r'1/n : $k_{snQ}$')
+ax6.set_xlabel(r'$\Phi$ (1/n) : $k_{snQ}$')
 ax6.set_ylabel('Shape Parameter')
 ax6.set_xlim((0.01,0.45))
 
@@ -118,6 +119,15 @@ ax8.set_xscale('log')
 
 
 E_vec=np.logspace(-1,4,100)
+
+Klist=[]
+Klplist=[]
+philist=[]
+philplist=[]
+mrlist=[]
+crlist=[]
+mrslist=[]
+crslist=[]
 
 for i in range(len(group_list)):
     idx=df['Group']==group_list[i]
@@ -139,9 +149,19 @@ for i in range(len(group_list)):
     [C,phi]=odr_fit(E*1e6,ksn)
     [Clp,philp]=odr_fit(E*1e6,ksnqp)
     
+    Klist.append(K)
+    Klplist.append(Klp)
+    philist.append(phi)
+    philplist.append(philp)
+    
     cr=df.loc[idx,'cr'].to_numpy()
     mn_R=df.loc[idx,'mn_R'].to_numpy()
     mn_P=df.loc[idx,'mn_P'].to_numpy()
+    
+    crlist.append(np.mean(cr))
+    crslist.append(np.std(cr))
+    mrlist.append(np.mean(mn_R))
+    mrslist.append(np.std(mn_R))
     
     if len_list[i]==50:
         ax1.scatter(E*1e6,ksn,c=col_list[i],marker=mar_list[i],zorder=2,label=label[i]+'; n = '+str(np.round(n,1)))
@@ -184,7 +204,67 @@ for i in range(len(group_list)):
     ax6.errorbar(1/nlp,np.mean(cr),np.std(cr),ecolor=col_list[i],linestyle='',zorder=0,elinewidth=0.5)
     ax7.errorbar(K,np.mean(mn_R),np.std(mn_R),ecolor=col_list[i],linestyle='',zorder=0,elinewidth=0.5)
     ax8.errorbar(Klp,np.mean(mn_R),np.std(mn_R),ecolor=col_list[i],linestyle='',zorder=0,elinewidth=0.5)
-    
+
+# Convert lists to numpy
+Klist=np.array(Klist)
+Klplist=np.array(Klplist)
+philist=np.array(philist)
+philplist=np.array(philplist)
+mrlist=np.array(mrlist)
+crlist=np.array(crlist)
+mrslist=np.array(mrslist)
+crslist=np.array(crlist)
+
+# Fit
+linmod=odr.Model(linear)
+phi_vec=np.linspace(0.05,0.45,100)
+k_vec=np.logspace(-41,-11,100)
+klp_vec=np.logspace(-29,-8,100)
+
+# phi-cR
+phicr=odr.RealData(philist,crlist,sx=crslist)
+odrphicr=odr.ODR(phicr,linmod,beta0=[0.1,10])
+outphicr=odrphicr.run()
+phicr_slp=outphicr.beta[0]
+phicr_yint=outphicr.beta[1]
+ax5.plot(phi_vec,phicr_slp*phi_vec+phicr_yint,c='k',linestyle=':',zorder=0)
+ax5.set_ylim((0.45,1.80))
+eqstr=r'$c_{r}$ = '+str(np.round(phicr_slp,3))+r' * $\Phi$ + '+str(np.round(phicr_yint,3))
+ax5.text(0.25,1,eqstr)
+
+#philp-cR
+philpcr=odr.RealData(philplist,crlist,sx=crslist)
+odrphilpcr=odr.ODR(philpcr,linmod,beta0=[0.1,10])
+outphilpcr=odrphilpcr.run()
+philpcr_slp=outphilpcr.beta[0]
+philpcr_yint=outphilpcr.beta[1]
+ax6.plot(phi_vec,philpcr_slp*phi_vec+philpcr_yint,c='k',linestyle=':',zorder=0)
+ax6.set_ylim((0.45,1.80))
+eqstr=r'$c_{r}$ = '+str(np.round(philpcr_slp,3))+r' * $\Phi$ + '+str(np.round(philpcr_yint,3))
+ax6.text(0.075,0.75,eqstr)
+
+# K-R
+kr=odr.RealData(np.log10(Klist),mrlist,sx=mrslist)
+odrkr=odr.ODR(kr,linmod,beta0=[0.1,10])
+outkr=odrkr.run()
+kr_slp=outkr.beta[0]
+kr_yint=outkr.beta[1]
+ax7.plot(k_vec,kr_slp*np.log10(k_vec)+kr_yint,c='k',linestyle=':',zorder=0)
+ax7.set_ylim((1,8.25))
+eqstr=r'$\bar{R}$ = '+str(np.round(kr_slp,3))+r' * log($K$) + '+str(np.round(kr_yint,3))
+ax7.text(10**-39,2,eqstr)
+
+# Klp-R
+klpr=odr.RealData(np.log10(Klplist),mrlist,sx=mrslist)
+odrklpr=odr.ODR(klpr,linmod,beta0=[0.1,10])
+outklpr=odrklpr.run()
+klpr_slp=outklpr.beta[0]
+klpr_yint=outklpr.beta[1]
+ax8.plot(klp_vec,klpr_slp*np.log10(klp_vec)+klpr_yint,c='k',linestyle=':',zorder=0)
+ax8.set_ylim((1,8.25)) 
+eqstr=r'$\bar{R}$ = '+str(np.round(klpr_slp,3))+r' * log($K_{lp}$) + '+str(np.round(klpr_yint,3)) 
+ax8.text(10**-26,2,eqstr)
+  
     
 ax1.legend(loc='best')
 ax2.legend(loc='best')
