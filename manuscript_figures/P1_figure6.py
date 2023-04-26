@@ -239,4 +239,5 @@ ax10.text(0.95, 0.15, 'J',
 
 plt.tight_layout()
 plt.rcdefaults()
-f1.savefig('figure_x1.png',dpi='figure')      
+f1.savefig('P1_figure6.png',dpi='figure')
+# f1.savefig('P1_figure6.pdf',dpi='figure')      

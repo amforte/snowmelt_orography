@@ -107,44 +107,13 @@ def plot_and_fit_ref(axn,axnt,dfs,bl,br,bb,bt,col,lab):
     axnt.set_ylabel('Snowmelt Fraction')
     axnt.set_xlabel('Maximum Elevation [m]')
     
-    axn.legend(loc='lower right')
-    axnt.legend(loc='upper right')
+    axn.legend(loc='lower left',bbox_to_anchor= (0.05,-0.5))
+    axnt.legend(loc='lower left',bbox_to_anchor= (0.05,-0.5))
         
-    # h1,l1=axn.get_legend_handles_labels()
-    # h2,l2=axnt.get_legend_handles_labels()
-    # axnt.legend(h1+h2,l1+l2,bbox_to_anchor= (-0.1,-0.3),loc='lower left')
 
-master_location='/Volumes/Choruh/Data/snowmelt_project/'
+# master_location='/Volumes/Choruh/Data/snowmelt_project/'
+master_location='/Users/aforte/Documents/Python/snowmelt/'
 repo_location='/Users/aforte/Documents/GitHub/snowmelt_orography/geospatial_codes/'
-
-# Load original
-gages2raster=pd.read_csv(repo_location+'gages2_wrr2_raster_values.csv')
-gages2real=pd.read_csv(repo_location+'gages2_real_ts.csv')
-gages2stats=pd.read_csv(repo_location+'gages2_station_stats.csv')
-
-gages2ids1=pd.read_csv(master_location+'gagesII/basinchar_and_report_sept_2011/spreadsheets-in-csv-format/conterm_basinid.txt')
-gages2ids2=pd.read_csv(master_location+'gagesII/basinchar_and_report_sept_2011/spreadsheets-in-csv-format/AKHIPR_basinid.txt')
-gages2ids=pd.concat([gages2ids1,gages2ids2],axis=0)
-gages2hcdn=gages2ids[['STAID','HCDN-2009']]
-
-# Extract lat-lon of center
-gages2morph1=pd.read_csv(master_location+'gagesII/basinchar_and_report_sept_2011/spreadsheets-in-csv-format/conterm_bas_morph.txt')
-gages2morph2=pd.read_csv(master_location+'gagesII/basinchar_and_report_sept_2011/spreadsheets-in-csv-format/AKHIPR_bas_morph.txt')
-gages2morph=pd.concat([gages2morph1,gages2morph2],axis=0)
-
-# Merge
-df=pd.merge(gages2raster,gages2hcdn,on='STAID',how='inner')
-df=pd.merge(gages2real,df,on='STAID',how='inner')
-df=pd.merge(gages2morph,df,on='STAID',how='inner')
-df=pd.merge(gages2stats,df,on='STAID',how='inner')
-percb_cutoff=0.25
-perc_base=df['QSB']/df['R']
-rlf=df['MAX_Z']-df['MIN_Z']
-
-# Establish index and produce new dataset
-hcdn_idx=(rlf>500) & (df['HCDN-2009']=='yes') & (df['MEAN_Z']>250) & (df['SlicedComp']>0.95) & (perc_base<percb_cutoff)
-df_hcdn=df.loc[hcdn_idx,:]
-perc_snow=df_hcdn['QSM']/df_hcdn['R']
 
 ## Load global
 df_global=pd.read_csv(master_location+'wrr2_derived_data_v3.csv')
@@ -191,52 +160,31 @@ xb=np.linspace(0,10,50)
 yb=np.linspace(0,2,50)
 
 
-f1=plt.figure(1,figsize=(8,8))
+f1=plt.figure(1,figsize=(8,4))
 f1.set_dpi(250)
 
-ax11=plt.subplot(2,2,1)
-idx1=(global_perc_snow<=0.35) & (df_global_s['r_c1']>0)
-g2idx1=perc_snow<=0.35
-# ax1.scatter(df_global_s.loc[idx1,'mean_runoff'],df_global_s.loc[idx1,'r_c1'],c='k',s=1)
-ax11.scatter(df_hcdn.loc[g2idx1,'SlicedMeanR'],df_hcdn.loc[g2idx1,'SlicedRC1'],zorder=2,s=5,c='k',label='HCDN-2009')
-sc11=plt.hist2d(df_global_s.loc[idx1,'mean_runoff'],df_global_s.loc[idx1,'r_c1'],[xb,yb],norm=colors.LogNorm(vmin=1,vmax=1000),cmap=cm.lajolla)
+ax11=plt.subplot(1,3,1)
+idx1=(df_global_s['r_c1']>0)
+
+sc11=plt.hist2d(df_global_s.loc[idx1,'mean_runoff'],df_global_s.loc[idx1,'r_c1'],[xb,yb],norm=colors.LogNorm(vmin=1,vmax=1000),cmap=cm.grayC)
 ax11.set_xlabel('WaterGAP3 Runoff [mm/day]')
 ax11.set_ylabel('WaterGAP3 Shape Parameter')
 ax11.set_xlim((0,10))
 ax11.set_ylim((0,2.5))
-ax11.set_title('Snowmelt Fraction < 0.35')
-ax11.legend(loc=4)
 cbar11=plt.colorbar(sc11[3],ax=ax11)
+cbar11.ax.set_ylabel('Density')
 ax11.text(0.01, 0.99, 'A',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax11.transAxes,
         fontsize=12,fontweight='extra bold')
 
-ax12=plt.subplot(2,2,2)
-idx2=(global_perc_snow>0.35) & (df_global_s['r_c1']>0)
-g2idx2=perc_snow>0.35
-# ax2.scatter(df_global_s.loc[idx2,'mean_runoff'],df_global_s.loc[idx2,'r_c1'],c='k',s=1)
-ax12.scatter(df_hcdn.loc[g2idx2,'SlicedMeanR'],df_hcdn.loc[g2idx2,'SlicedRC1'],zorder=2,s=5,c='k',label='HCDN-2009')
-sc12=plt.hist2d(df_global_s.loc[idx2,'mean_runoff'],df_global_s.loc[idx2,'r_c1'],[xb,yb],norm=colors.LogNorm(vmin=1,vmax=1000),cmap=cm.lajolla)
-ax12.set_xlabel('WaterGAP3 Runoff [mm/day]')
-ax12.set_ylabel('WaterGAP3 Shape Parameter')
-ax12.set_xlim((0,10))
-ax12.set_ylim((0,2.5))
-ax12.set_title('Snowmelt Fraction > 0.35')
-ax12.legend(loc=4)
-cbar12=plt.colorbar(sc12[3],ax=ax12)
-cbar12.ax.set_ylabel('Density')
-ax12.text(0.01, 0.99, 'B',
-        horizontalalignment='left',
-        verticalalignment='top',
-        transform=ax12.transAxes,
-        fontsize=12,fontweight='extra bold')
+
+cnt1=0
+cnt2=0
 
 for i in range(len(bv)-1):
     gidx=(global_perc_snow>=bv[i]) & (global_perc_snow<bv[i+1]) & (df_global_s['r_c1']>0)
-    g2idx1=(perc_snow>=bv[i]) & (perc_snow<bv[i+1])
-    
         
     fdlog=odr.Data(np.log10(df_global_s.loc[gidx,'mean_runoff']),np.log10(df_global_s.loc[gidx,'r_c1']))
     odrlog=odr.ODR(fdlog,linmod,beta0=[0.1,10])
@@ -259,10 +207,20 @@ for i in range(len(bv)-1):
     lab2='RMSE = '+str(np.round(rmse2,4))
     
     if bv[i+1]<=0.35:
-        ax11.plot(r,logcoeff*r**logexp,c='k',linewidth=bv[i+1]*3,linestyle='--')
+        if cnt1==0:
+            ax11.plot(r,logcoeff*r**logexp,c='indianred',linewidth=bv[i+1]*3,linestyle='-',label='Snowmelt Fraction < 0.35')
+        else:
+            ax11.plot(r,logcoeff*r**logexp,c='indianred',linewidth=bv[i+1]*3,linestyle='-') 
+        cnt1=cnt1+1
     else:
-        ax12.plot(r,linslp*r+linint,c='k',linewidth=bv[i+1],linestyle='--')
+        if cnt2==0:
+            ax11.plot(r,linslp*r+linint,c='dodgerblue',linewidth=bv[i+1],linestyle='--',label='Snowmelt Fraction > 0.35')
+        else:
+            ax11.plot(r,linslp*r+linint,c='dodgerblue',linewidth=bv[i+1],linestyle='--')
+        cnt2=cnt2+1
+        
 
+ax11.legend(loc='lower left',bbox_to_anchor= (-0.15,-0.5))
 
 # Greater Caucasus
 bl1=38
@@ -285,24 +243,24 @@ bb3=48
 bt3=54
 bc_col='orange'
 
-ax13=plt.subplot(2,2,3)
-ax14=plt.subplot(2,2,4)
+ax13=plt.subplot(1,3,2)
+ax14=plt.subplot(1,3,3)
 plot_and_fit_ref(ax13,ax14,df_global_s,bl3,br3,bb3,bt3,bc_col,'British Columbia')
 plot_and_fit_ref(ax13,ax14,df_global_s,bl2,br2,bb2,bt2,alps_col,'Alps')
 plot_and_fit_ref(ax13,ax14,df_global_s,bl1,br1,bb1,bt1,gc_col,'Greater Caucasus')
 
-ax13.text(0.01, 0.99, 'C',
+ax13.text(0.01, 0.99, 'B',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax13.transAxes,
         fontsize=12,fontweight='extra bold')
 
-ax14.text(0.01, 0.99, 'D',
+ax14.text(0.01, 0.99, 'C',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax14.transAxes,
         fontsize=12,fontweight='extra bold')
 
 plt.tight_layout()
-f1.savefig('figure_x3.pdf',dpi='figure')
+f1.savefig('P2_figure2.pdf',dpi='figure')
 plt.rcdefaults()

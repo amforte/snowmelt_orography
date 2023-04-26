@@ -237,5 +237,5 @@ f1.tight_layout()
 f2.tight_layout()
 plt.rcdefaults()
 
-f1.savefig('figure_10.pdf',dpi="figure")
-f2.savefig('figure_11.pdf',dpi="figure")
+f1.savefig('P2_figure8.pdf',dpi="figure")
+f2.savefig('P2_figure9.pdf',dpi="figure")

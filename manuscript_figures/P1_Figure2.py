@@ -130,4 +130,5 @@ gagesdf.plot(ax=axins1,color='k')
 plt.rcdefaults()
 
 f1.savefig('P1_figure2.png',dpi="figure")
+# f1.savefig('P1_figure2.pdf',dpi="figure")
 

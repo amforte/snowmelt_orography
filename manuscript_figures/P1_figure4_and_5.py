@@ -55,7 +55,8 @@ def odr_fit_ref(x,y):
 
     return slp,yint,lin_sd,lin_rmse,lin_chi2,logcoeff,logexp,log_sd,log_rmse,log_chi2 
 
-master_location='/Volumes/Choruh/Data/snowmelt_project/'
+master_location='/Users/aforte/Documents/Python/snowmelt/'
+# master_location='/Volumes/Choruh/Data/snowmelt_project/'
 repo_location='/Users/aforte/Documents/GitHub/snowmelt_orography/geospatial_codes/'
 
 # Load original
@@ -251,5 +252,5 @@ for i in range(len(bv)-1):
 plt.tight_layout()
 plt.rcdefaults()
 
-f1.savefig('figure_3.pdf',dpi="figure")
-f2.savefig('figure_s1.pdf',dpi="figure")
+f1.savefig('P1_figure5.pdf',dpi="figure")
+f2.savefig('P1_figure4.pdf',dpi="figure")

@@ -12,12 +12,15 @@ import stimpy as st
 import numpy as np
 
 master_location='/Volumes/Choruh/Data/snowmelt_project/model_outputs/'
+# master_location='/Users/aforte/Documents/Python/snowmelt/model_outputs/'
 
 model_list=['gc1u','gc1l']
 prefix_list=['ts_','ts_']
 descript_list=['GC1U','GC1L']
 
 mc=st.ModelComparison(master_location,model_list,prefix_list,descript_list)
-f1=mc.comp_profile_evol(25,3.25,7,25,[np.inf,2.1e6])
+# mc.comp_excd_prob(0.15,6,[np.inf,2.1e6],['k','gray'])
 
-f1.savefig('figure_7.pdf',dpi="figure")
+f1=mc.comp_excd_prob(0.1,6,[np.inf,np.inf],['k','gray'])
+# f1.savefig('P2_figure6.pdf',dpi="figure")
+f1.savefig('P2_figure6.png',dpi="figure")

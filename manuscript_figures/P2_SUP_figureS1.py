@@ -127,11 +127,4 @@ ax4.text(0.01, 0.99, 'D',
 
 plt.tight_layout()
 plt.rcdefaults()
-f1.savefig('figure_s2.pdf',dpi="figure")
-
-
-
-
-
-
-
+f1.savefig('P2_SUP_figureS1.pdf',dpi="figure")

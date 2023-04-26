@@ -21,7 +21,7 @@ style_list=['-','--','-','--']
 
 mc=st.ModelComparison(master_location,model_list,prefix_list,descript_list)
 f1=mc.plot_all2(col_list,style_list,sample_freq=10)
-f1.savefig('figure_s3.pdf',dpi="figure")
+f1.savefig('P2_SUP_figureS2.pdf',dpi="figure")
 
 # Figure S4
 model_list=['gc1u','gc1u_2000r','gc1u_1500r']
@@ -32,7 +32,7 @@ style_list=['-','--','-']
 
 mc=st.ModelComparison(master_location,model_list,prefix_list,descript_list)
 f2=mc.plot_all2(col_list,style_list,sample_freq=10)
-f2.savefig('figure_s4.pdf',dpi="figure")
+f2.savefig('P2_SUP_figureS3.pdf',dpi="figure")
 
 # Figure S5
 model_list=['gc1u','gc1u_40l','gc1u_30l','gc1u_20l','gc1u_10l','gc1u_100l']
@@ -43,4 +43,4 @@ style_list=['-','--','-','--','-','--']
 
 mc=st.ModelComparison(master_location,model_list,prefix_list,descript_list)
 f3=mc.plot_all2(col_list,style_list,sample_freq=10)
-f3.savefig('figure_s5.pdf',dpi="figure")
+f3.savefig('P2_SUP_figureS4.pdf',dpi="figure")
