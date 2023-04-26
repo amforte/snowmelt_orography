@@ -166,12 +166,19 @@ ax1.scatter([5,10],mn_ksn1[1:-1],c='gray',s=50,zorder=1)
 ax1.scatter([2],mn_ksn1[-1],c='k',marker='s',s=50,label='GC1L',zorder=1)
 ax1.set_ylim((200,525))
 ax1.set_xticks([2,5,10])
+ax1.set_xlim((1.5,10.5))
 ax1.legend(loc=4)
 ax1.text(0.92, 0.99, 'A',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax1.transAxes,
         fontsize=12,fontweight='extra bold') 
+
+ax1a=ax1.twiny()
+ax1a.set_xlim((1.5,10.5))
+ax1a.set_xticks([2,5,10])
+ax1a.set_xticklabels(['25','10','5'])
+ax1a.set_xlabel('Number of Bins')
 
 ax2=f1.add_subplot(2,2,2)
 ax2.set_xlabel('Imposed Maximum Relief [km]')
