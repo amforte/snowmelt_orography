@@ -1,6 +1,6 @@
 # ReadMe #
 
-This repository contains supplemental data and codes for the manuscript "Stochastic in space and time: Feedback between bedrock river incision and orographic patterns in runoff variability" by Forte & Rossi submitted to the Journal of Geophysical Research - Earth Surface. Below are brief descriptions of categories of items included in this repository. Note that the majority of processed data and all individual model results are hosted in a separate [Zenodo Repository](https://doi.org/10.5281/zenodo.7665887).
+This repository contains supplemental data and codes for the two part manuscript "Stochastic in Space and Time: Part 1, Characterizing Orographic Gradients in Mean Runoff and Daily Runoff Variability" and "Stochastic in Space and Time: Part 2, Effects of Simulating Orographic Gradients in Daily Runoff Variability on Bedrock River Incision" by Forte & Rossi in the Journal of Geophysical Research - Earth Surface. Below are brief descriptions of categories of items included in this repository. Note that the majority of processed data and all individual model results are hosted in a separate [Zenodo Repository](https://doi.org/10.5281/zenodo.7665887).
 
 ## Repository Contents
 ### geospatial_codes
@@ -10,7 +10,7 @@ Codes for generating the main text and supplmental figures for the in review man
 ### model_runs
 Model run scripts for all of the presented models. Note that outputs of the model are provided in the related [Zenodo Repository](https://doi.org/10.5281/zenodo.7665887).
 ### stimpy
-Python codes for the 1D stocthastic threshold incision model
+Python codes for the modified 1D stocthastic threshold incision model, i.e., spatial-STIM
 
 ## Notes
 ### Raw Data
