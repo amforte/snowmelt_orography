@@ -17,7 +17,8 @@ import warnings
 warnings.filterwarnings('ignore',message='Singular matrix in solving dual problem')
 
 # Define location of data
-master_location='/Volumes/Choruh/Data/snowmelt_project/'
+# master_location='/Volumes/Choruh/Data/snowmelt_project/'
+master_location='/Users/aforte/Documents/Python/snowmelt/'
 
 ## Load global
 df=pd.read_csv(master_location+'wrr2_derived_data_v3.csv')
@@ -139,6 +140,7 @@ ax1.text(0.01, 0.99, 'A',
 ax2=plt.subplot(5,2,2)
 ax2.barh(F5,regr5.feature_importances_,color='darkred')
 ax2.set_xlabel('Importances from Random Forest Regression')
+ax2.set_xlim((0,0.8))
 ax2.text(0.95, 0.99, 'B',
         horizontalalignment='left',
         verticalalignment='top',
@@ -162,7 +164,8 @@ ax3.text(0.01, 0.99, 'C',
 ax4=plt.subplot(5,2,4)
 ax4.barh(F1,regr1.feature_importances_,color='cornflowerblue')
 ax4.set_xlabel('Importances from Random Forest Regression')
-ax4.text(0.95, 0.15, 'D',
+ax4.set_xlim((0,0.8))
+ax4.text(0.95, 0.99, 'D',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax4.transAxes,
@@ -185,6 +188,7 @@ ax5.text(0.01, 0.99, 'E',
 ax6=plt.subplot(5,2,6)
 ax6.barh(F2,regr2.feature_importances_,color='darkblue')
 ax6.set_xlabel('Importances from Random Forest Regression')
+ax6.set_xlim((0,0.8))
 ax6.text(0.95, 0.99, 'F',
         horizontalalignment='left',
         verticalalignment='top',
@@ -208,6 +212,7 @@ ax7.text(0.01, 0.99, 'G',
 ax8=plt.subplot(5,2,8)
 ax8.barh(F3,regr3.feature_importances_,color='forestgreen')
 ax8.set_xlabel('Importances from Random Forest Regression')
+ax8.set_xlim((0,0.8))
 ax8.text(0.95, 0.99, 'H',
         horizontalalignment='left',
         verticalalignment='top',
@@ -231,7 +236,8 @@ ax9.text(0.01, 0.99, 'I',
 ax10=plt.subplot(5,2,10)
 ax10.barh(F4,regr4.feature_importances_,color='darkcyan')
 ax10.set_xlabel('Importances from Random Forest Regression')
-ax10.text(0.95, 0.15, 'J',
+ax10.set_xlim((0,0.8))
+ax10.text(0.95, 0.99, 'J',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax10.transAxes,

@@ -210,10 +210,10 @@ plt.imshow(P1c,origin='lower',
                 cmap=cm.grayC,norm=colors.Normalize(vmin=0,vmax=1),aspect='auto')
 # plt.xlabel('Mean Precip [mm/day]')
 # plt.ylabel('MAT [C]')
-ax3.text(0.90, 0.99, 'B',
+ax2.text(0.90, 0.99, 'B',
         horizontalalignment='left',
         verticalalignment='top',
-        transform=ax3.transAxes,
+        transform=ax2.transAxes,
         fontsize=12,fontweight='extra bold')
 
 ax3=f2.add_subplot(gs[0,2])

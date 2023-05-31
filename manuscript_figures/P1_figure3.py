@@ -30,7 +30,8 @@ def weibull_tail_fit(x,y,thresh):
     return c,s 
 
 repo_location='/Users/aforte/Documents/GitHub/snowmelt_orography/geospatial_codes/'
-master_location='/Volumes/Choruh/Data/snowmelt_project/'
+# master_location='/Volumes/Choruh/Data/snowmelt_project/'
+master_location='/Users/aforte/Documents/Python/snowmelt/'
 
 ## Requires gagesII data, available here:
 ## https://cmerwebmap.cr.usgs.gov/catalog/item/5788f619e4b0d27deb389055
@@ -96,9 +97,9 @@ df_route=pd.DataFrame(data={'STAID':staid,
 df_merge=pd.merge(df_route,df_hcdn,on='STAID',how='inner')  
 
 
-SMALL_SIZE = 8
-MEDIUM_SIZE = 10
-BIGGER_SIZE = 12
+SMALL_SIZE = 10
+MEDIUM_SIZE = 12
+BIGGER_SIZE = 14
 plt.rc('font', size=SMALL_SIZE,family='Futura')          # controls default text sizes
 plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
 plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
@@ -115,7 +116,7 @@ plt.scatter(df_hcdn['R'],df_hcdn['SlicedMeanR'],c='w',marker='s',edgecolors='k',
 plt.scatter(df_merge['R_route'],df_merge['SlicedMeanR'],c='k',s=25,label='Routed')
 
 x=np.linspace(0,10)
-plt.plot(x,x,c='k',linestyle='--')
+plt.plot(x,x,c='k',linestyle='--',label='1:1 Reference Line')
 plt.xlim((0,np.max(x)))
 plt.ylim((0,np.max(x)))
 plt.xlabel('WaterGAP3 Runoff [mm/day]')
@@ -136,7 +137,7 @@ plt.xlim((0,np.max(x)))
 plt.ylim((0,np.max(x)))
 plt.xlabel('WaterGAP3 Shape Parameter')
 plt.ylabel('Gages-II Shape Parameter')
-plt.legend(loc=4)
+# plt.legend(loc=4)
 ax2.text(0.01, 0.99, 'B',
         horizontalalignment='left',
         verticalalignment='top',
@@ -150,7 +151,7 @@ plt.axvline(0,c='k',linestyle='--')
 plt.axhline(0,c='k',linestyle='--')
 plt.xlabel('Mean Runoff Residual (GII-WG3)')
 plt.ylabel('Shape Residual (GII-WG3)')
-plt.legend(loc='best')
+# plt.legend(loc='best')
 ax3.text(0.01, 0.99, 'C',
         horizontalalignment='left',
         verticalalignment='top',
