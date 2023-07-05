@@ -1,0 +1,17 @@
+name: geospatial
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy
+  - scipy
+  - pandas
+  - scikit-learn
+  - cartopy
+  - cmcrameri
+  - fiona
+  - geopandas
+  - rasterio
+  - netcdf4
+  - spyder
