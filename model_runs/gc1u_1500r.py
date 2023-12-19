@@ -10,10 +10,10 @@ import sys
 sys.path.insert(0,'/Users/aforte/Documents/GitHub/snowmelt_orography')
 import stimpy as st
 
-master_location='/Volumes/Choruh/Data/snowmelt_project/'
+master_location='/Users/aforte/Documents/snowmelt_project/'
 
 ## STIM Daily Model ##
-output_dir=master_location+'gc1u_1500r'
+output_dir=master_location+'model_outputs/gc1u_1500r'
 # Generate stream  instance
 sObj=st.Stream(50000,25,dx=100,bin_size=2000)
 # # Generate runoff instance

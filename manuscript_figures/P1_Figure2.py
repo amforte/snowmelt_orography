@@ -127,6 +127,12 @@ ax1.plot([bl1,bl1,br1,br1,bl1],[bb1,bt1,bt1,bb1,bb1],c=gc_col,linewidth=0.75)
 ax1.plot([bl2,bl2,br2,br2,bl2],[bb2,bt2,bt2,bb2,bb2],c=alps_col,linewidth=0.75)
 ax1.plot([bl3,bl3,br3,br3,bl3],[bb3,bt3,bt3,bb3,bb3],c=bc_col,linewidth=0.75)
 
+bl4=-128
+br4=-65
+bb4=20
+bt4=60
+ax1.plot([bl4,bl4,br4,br4,bl4],[bb4,bt4,bt4,bb4,bb4],c='k',linewidth=0.75,linestyle=':')
+
 # gagesdf.plot(ax=ax1,color='k')
 
 # bl1=-130

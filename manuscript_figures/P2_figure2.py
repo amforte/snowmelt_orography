@@ -13,6 +13,8 @@ from cmcrameri import cm
 from scipy.stats import linregress
 from matplotlib import colors
 from scipy import odr
+from scipy.special import gamma
+
 
 def linear(B,x):
     return B[0]*x + B[1]
@@ -71,7 +73,7 @@ def plot_and_fit_ref(axn,axnt,dfs,bl,br,bb,bt,col,lab):
     
     z=np.linspace(1,max_z,100)
     
-    x=dfs.loc[spidx,'mean_rlf'].to_numpy()
+    x=dfs.loc[spidx,'mean_rlf25'].to_numpy()
     y=dfs.loc[spidx,'mean_runoff'].to_numpy()
     co,ex=odr_fit_ref2(x,y)
     bin_edges=np.histogram_bin_edges(dfs.loc[spidx,'mean_runoff'],'doane')
@@ -83,7 +85,8 @@ def plot_and_fit_ref(axn,axnt,dfs,bl,br,bb,bt,col,lab):
         stdy=np.std(y[bix==i])
         axn.scatter(mx,my,c=col,s=len(x[bix==i]))
         axn.errorbar(mx,my,xerr=stdx,yerr=stdy,ecolor=col,elinewidth=0.5,zorder=0)
-    axn.plot(z,co*z**ex,c=col,label=lab)  
+    rlf_run=r'; $\bar{R}$ = ' + '{:.2e}'.format(co) + ' * Rlf $^{'+str(np.round(ex,3))+'}$'
+    axn.plot(z,co*z**ex,c=col,label=lab+rlf_run)  
     axn.set_xlabel('Mean Local Relief [m]')
     axn.set_ylabel('Mean Runoff [mm/day]')
     axn.set_xlim((0,2500))
@@ -102,21 +105,22 @@ def plot_and_fit_ref(axn,axnt,dfs,bl,br,bb,bt,col,lab):
         stdy=np.std(y[bix==i])
         axnt.scatter(mx,my,c=col,s=len(x[bix==i]),marker='s')
         axnt.errorbar(mx,my,xerr=stdx,yerr=stdy,ecolor=col,elinewidth=0.5,zorder=0)
-    axnt.plot(z,co*z**ex,c=col,linestyle='--',label=lab)
+    sf_z=r'; SF = ' + '{:.2e}'.format(co) + ' * Max Z $^{'+str(np.round(ex,3))+'}$'
+    axnt.plot(z,co*z**ex,c=col,linestyle='--',label=lab+sf_z)
     axnt.set_ylim((0,1))
     axnt.set_ylabel('Snowmelt Fraction')
     axnt.set_xlabel('Maximum Elevation [m]')
     
-    axn.legend(loc='lower left',bbox_to_anchor= (0.05,-0.5))
-    axnt.legend(loc='lower left',bbox_to_anchor= (0.05,-0.5))
+    axn.legend(loc='lower left',bbox_to_anchor= (-0.2,-0.5))
+    axnt.legend(loc='lower left',bbox_to_anchor= (-0.2,-0.5))
         
 
 # master_location='/Volumes/Choruh/Data/snowmelt_project/'
 master_location='/Users/aforte/Documents/Python/snowmelt/'
-repo_location='/Users/aforte/Documents/GitHub/snowmelt_orography/geospatial_codes/'
+# repo_location='/Users/aforte/Documents/GitHub/snowmelt_orography/geospatial_codes/'
 
 ## Load global
-df_global=pd.read_csv(master_location+'wrr2_derived_data_v3.csv')
+df_global=pd.read_csv(master_location+'wrr2_derived_data_v4.csv')
 df_global=df_global.drop(index=df_global.index[np.isnan(df_global['mean_z'])])
 df_global=df_global.reset_index(drop=True)
 
@@ -135,9 +139,11 @@ df_global_s=df_global.drop(df_global.index[rem_idx])
 df_global_s=df_global_s.reset_index(drop=True)
 global_perc_snow=df_global_s['qsm']/df_global_s['mean_runoff']
 
+# Calculate estimated scale factor based on mean
+s_f=df_global_s['mean_runoff']/gamma(1+1/df_global_s['r_c1'])
 
 # Set vector
-r=np.linspace(0.1,25,100)
+r=np.linspace(0.01,25,100)
 
 # Define model
 linmod=odr.Model(linear)
@@ -156,20 +162,24 @@ plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 bv=np.concatenate((np.arange(0,0.80,0.05),[1.0]),axis=0)
-xb=np.linspace(0,10,50)
+# xb=np.linspace(0,10,50)
+xb=np.logspace(-2,2,50)
 yb=np.linspace(0,2,50)
+xbs=np.linspace(0,15,50)
+ybs=np.linspace(0,15,50)
 
-
-f1=plt.figure(1,figsize=(8,4))
+f1=plt.figure(1,figsize=(6,8))
 f1.set_dpi(250)
 
-ax11=plt.subplot(1,3,1)
-idx1=(df_global_s['r_c1']>0)
+ax11=plt.subplot(2,2,1)
 
-sc11=plt.hist2d(df_global_s.loc[idx1,'mean_runoff'],df_global_s.loc[idx1,'r_c1'],[xb,yb],norm=colors.LogNorm(vmin=1,vmax=1000),cmap=cm.grayC)
+
+idx1=(df_global_s['r_c1']>0)
+sc11=ax11.hist2d(df_global_s.loc[idx1,'mean_runoff'],df_global_s.loc[idx1,'r_c1'],[xb,yb],norm=colors.LogNorm(vmin=1,vmax=1000),cmap=cm.grayC)
 ax11.set_xlabel('WaterGAP3 Runoff [mm/day]')
 ax11.set_ylabel('WaterGAP3 Shape Parameter')
-ax11.set_xlim((0,10))
+ax11.set_xscale('log')
+ax11.set_xlim((0.01,10))
 ax11.set_ylim((0,2.5))
 cbar11=plt.colorbar(sc11[3],ax=ax11)
 cbar11.ax.set_ylabel('Density')
@@ -179,6 +189,20 @@ ax11.text(0.01, 0.99, 'A',
         transform=ax11.transAxes,
         fontsize=12,fontweight='extra bold')
 
+ax12=plt.subplot(2,2,2)
+sc12=ax12.hist2d(s_f[idx1],df_global_s.loc[idx1,'r_s1'],[xbs,ybs],norm=colors.LogNorm(vmin=1,vmax=1000),cmap=cm.grayC)
+ax12.set_xlabel('Scale Estimated from WaterGAP3 Mean')
+ax12.set_ylabel('WaterGAP3 Scale Parameter')
+ax12.set_xlim((0,15))
+ax12.set_ylim((0,15))
+cbar12=plt.colorbar(sc12[3],ax=ax12)
+cbar12.ax.set_ylabel('Density')
+ax12.text(0.01, 0.99, 'B',
+        horizontalalignment='left',
+        verticalalignment='top',
+        transform=ax12.transAxes,
+        fontsize=12,fontweight='extra bold')
+
 
 cnt1=0
 cnt2=0
@@ -186,6 +210,7 @@ cnt2=0
 for i in range(len(bv)-1):
     gidx=(global_perc_snow>=bv[i]) & (global_perc_snow<bv[i+1]) & (df_global_s['r_c1']>0)
         
+    # Shape
     fdlog=odr.Data(np.log10(df_global_s.loc[gidx,'mean_runoff']),np.log10(df_global_s.loc[gidx,'r_c1']))
     odrlog=odr.ODR(fdlog,linmod,beta0=[0.1,10])
     outlog=odrlog.run()
@@ -206,21 +231,35 @@ for i in range(len(bv)-1):
     rmse2=np.sqrt(np.sum((cr2_pred-df_global_s.loc[gidx,'r_c1'])**2)/len(cr2_pred))
     lab2='RMSE = '+str(np.round(rmse2,4))
     
+    # Scale
+    fdlinsc=odr.Data(s_f[gidx],df_global_s.loc[gidx,'r_s1'])
+    odrlinsc=odr.ODR(fdlinsc,linmod,beta0=[1,0.1])
+    outlinsc=odrlinsc.run()
+    linslpsc=outlinsc.beta[0]
+    linintsc=outlinsc.beta[1]
+    
     if bv[i+1]<=0.35:
         if cnt1==0:
             ax11.plot(r,logcoeff*r**logexp,c='indianred',linewidth=bv[i+1]*3,linestyle='-',label='Snowmelt Fraction < 0.35')
+            ax12.plot(r,linslpsc*r+linintsc,c='indianred',linewidth=bv[i+1]*3,linestyle='-',label='Snowmelt Fraction < 0.35')
         else:
-            ax11.plot(r,logcoeff*r**logexp,c='indianred',linewidth=bv[i+1]*3,linestyle='-') 
+            ax11.plot(r,logcoeff*r**logexp,c='indianred',linewidth=bv[i+1]*3,linestyle='-')
+            ax12.plot(r,linslpsc*r+linintsc,c='indianred',linewidth=bv[i+1]*3,linestyle='-')
         cnt1=cnt1+1
     else:
         if cnt2==0:
             ax11.plot(r,linslp*r+linint,c='dodgerblue',linewidth=bv[i+1],linestyle='--',label='Snowmelt Fraction > 0.35')
+            ax12.plot(r,linslpsc*r+linintsc,c='dodgerblue',linewidth=bv[i+1],linestyle='--',label='Snowmelt Fraction > 0.35')
         else:
             ax11.plot(r,linslp*r+linint,c='dodgerblue',linewidth=bv[i+1],linestyle='--')
+            ax12.plot(r,linslpsc*r+linintsc,c='dodgerblue',linewidth=bv[i+1],linestyle='--')
         cnt2=cnt2+1
+        
+        
         
 
 ax11.legend(loc='lower left',bbox_to_anchor= (-0.15,-0.5))
+ax12.legend(loc='lower left',bbox_to_anchor= (-0.15,-0.5))
 
 # Greater Caucasus
 bl1=38
@@ -243,19 +282,19 @@ bb3=48
 bt3=54
 bc_col='orange'
 
-ax13=plt.subplot(1,3,2)
-ax14=plt.subplot(1,3,3)
+ax13=plt.subplot(2,2,3)
+ax14=plt.subplot(2,2,4)
 plot_and_fit_ref(ax13,ax14,df_global_s,bl3,br3,bb3,bt3,bc_col,'British Columbia')
 plot_and_fit_ref(ax13,ax14,df_global_s,bl2,br2,bb2,bt2,alps_col,'Alps')
 plot_and_fit_ref(ax13,ax14,df_global_s,bl1,br1,bb1,bt1,gc_col,'Greater Caucasus')
 
-ax13.text(0.01, 0.99, 'B',
+ax13.text(0.01, 0.99, 'C',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax13.transAxes,
         fontsize=12,fontweight='extra bold')
 
-ax14.text(0.01, 0.99, 'C',
+ax14.text(0.01, 0.99, 'D',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax14.transAxes,

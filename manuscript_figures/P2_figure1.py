@@ -41,7 +41,7 @@ plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
 plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
-repo_location='/Users/aforte/Documents/GitHub/snowmelt_orography/'
+repo_location='/Users/aforte/Documents/GitHub/snowmelt-tectonics/'
 topo=pd.read_csv(repo_location+'stimpy/topo_snow_mean_relationships.csv')
 snow=pd.read_csv(repo_location+'stimpy/snowmelt_meanR_cR_relationships.csv')
 
@@ -50,7 +50,7 @@ snow=pd.read_csv(repo_location+'stimpy/snowmelt_meanR_cR_relationships.csv')
 col_vec=colors.Normalize(vmin=0,vmax=4)
 
 # Establish runoff variability relationships
-r_vec=np.logspace(-1,1,500)
+r_vec=np.logspace(-1,1.15,500)
 lowsnow_cr=snow.loc[1,'param1']*r_vec**snow.loc[1,'param2']
 highsnow_cr=snow.loc[15,'param1']*r_vec + snow.loc[15,'param2']
 
@@ -84,15 +84,15 @@ ax2.plot(rlf,r,c='k',label='Local Relief to Runoff')
 for i in range(5):
     ax2.scatter(rlf_p[i],r_p[i],color=cm.roma(col_vec(i)),s=40,zorder=2,edgecolor='k')
     
-plt.annotate('', xy=(2800, 7), xytext=(1200, 1), 
+plt.annotate('', xy=(3000, 12), xytext=(1350, 2), 
             arrowprops=dict(facecolor='k', shrink=0.),
             )
-plt.text(1600,1.6,'Growing Topography',rotation=58.5)    
+plt.text(1600,2,'Growing Topography',rotation=58.5)    
 ax2.set_xlabel('Topography',labelpad=-10)
 ax2.set_ylabel('Runoff',labelpad=-15)
 ax2.set_xticks([0,5000])
 ax2.set_xticklabels(['Low','High'])
-ax2.set_yticks([0,10])
+ax2.set_yticks([0,16])
 ax2.set_yticklabels(['Low','High'])
 ax2.set_xlim((-100,5200))
 ax2a=ax2.twinx()
@@ -122,9 +122,9 @@ for i in range(5):
 plt.xlabel('Mean Runoff',labelpad=-10)
 plt.ylabel('Shape Parameter',labelpad=-15)
 plt.legend(bbox_to_anchor= (-0.1,-0.5),loc='lower left')
-ax1.set_xticks([0,10])
+ax1.set_xticks([0,14.5])
 ax1.set_xticklabels(['Low','High'])
-ax1.set_yticks([0.2,2.8])
+ax1.set_yticks([0.2,3.68])
 ax1.set_yticklabels(['Low','High'])
 ax1.text(0.01, 0.99, 'B',
         horizontalalignment='left',
@@ -135,14 +135,19 @@ ax1.text(0.01, 0.99, 'B',
 
 ax3=plt.subplot(1,3,3)
 for i in range(5):
-    ax3.plot(e_p[i]/1000,ksn_p[i],c=cm.roma(col_vec(i)),linewidth=2)
-ax3.set_xlabel('Erosion Rate',labelpad=-10)
-ax3.set_ylabel(r'$k_{sn}$',labelpad=-15)
-plt.xlim((0,10))
-plt.ylim((0,550))
-ax3.set_xticks([0.25,9.75])
+    ax3.plot(np.log10(e_p[i]/1000),np.log10(ksn_p[i]),c=cm.roma(col_vec(i)),linewidth=2)
+ax3.set_xlabel('Log Erosion Rate',labelpad=-10)
+ax3.set_ylabel(r'Log $k_{sn}$',labelpad=-15)
+plt.xlim((np.log10(0.1),np.log10(10)))
+plt.ylim((np.log10(100),np.log10(550)))
+# plt.ylim((100,550))
+# plt.xscale('log')
+# plt.yscale('log')
+
+ax3.set_xticks([np.log10(0.11),np.log10(9.75)])
 ax3.set_xticklabels(['Low','High'])
-ax3.set_yticks([10,540])
+# ax3.set_yticks([100,530])
+ax3.set_yticks([np.log10(105),np.log10(530)])
 ax3.set_yticklabels(['Low','High'])
 ax3.text(0.01, 0.99, 'C',
         horizontalalignment='left',
@@ -153,7 +158,7 @@ ax3.text(0.01, 0.99, 'C',
 plt.tight_layout(pad=0, w_pad=-2, h_pad=0.1)
 plt.rcdefaults()
 
-f1.savefig('figure_1.pdf',dpi="figure")
+f1.savefig('P2_figure1_Part.pdf',dpi="figure")
 
 
 

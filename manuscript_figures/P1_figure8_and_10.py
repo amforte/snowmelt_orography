@@ -22,6 +22,9 @@ from scipy import odr
 def linear(B,x):
     return B[0]*x + B[1]
 
+def rmsef(observed,predicted):
+    return np.sqrt(np.sum((predicted-observed)**2)/len(predicted))
+
 def odr_fit_ref(x,y):
     # Filter 0 values
     lx=np.log10(x[(x>0) & (y>0)])
@@ -48,7 +51,7 @@ def plot_and_fit_ref(axn,dfs,bl,br,bb,bt,col,lbl_left,lbl_rgt):
     
     z=np.linspace(1,max_z,100)
     
-    x=dfs.loc[spidx,'mean_rlf'].to_numpy()
+    x=dfs.loc[spidx,'mean_rlf25'].to_numpy()
     y=dfs.loc[spidx,'mean_runoff'].to_numpy()
     co,ex=odr_fit_ref(x,y)
     bin_edges=np.histogram_bin_edges(dfs.loc[spidx,'mean_runoff'],'doane')
@@ -66,6 +69,10 @@ def plot_and_fit_ref(axn,dfs,bl,br,bb,bt,col,lbl_left,lbl_rgt):
         axn.set_ylabel('Mean Runoff [mm/day]')
     axn.set_xlim((0,max_z))
     axn.set_ylim((0,max_r))
+    
+    rmse_val=rmsef(y,co*x**ex)
+
+    rlf_run=r'$\bar{R}$ = ' + '{:.2e}'.format(co) + ' * Rlf $^{'+str(np.round(ex,3))+'}$' + '; RMSE = {:.2f}'.format(rmse_val)
 
     axnt=axn.twinx()
     snmp=dfs.loc[spidx,'qsm']/dfs.loc[spidx,'mean_runoff']
@@ -85,10 +92,20 @@ def plot_and_fit_ref(axn,dfs,bl,br,bb,bt,col,lbl_left,lbl_rgt):
     axnt.set_ylim((0,1))
     if lbl_rgt:
         axnt.set_ylabel('Snowmelt Fraction')
-        
+    
+    rmse_val=rmsef(y,co*x**ex)
+    
+    sf_z=r'SF = ' + '{:.2e}'.format(co) + ' * Max Z $^{'+str(np.round(ex,3))+'}$' + '; RMSE = {:.2f}'.format(rmse_val)
+    
     h1,l1=axn.get_legend_handles_labels()
     h2,l2=axnt.get_legend_handles_labels()
-    axnt.legend(h1+h2,l1+l2,bbox_to_anchor= (-0.1,-0.4),loc='lower left')
+    
+
+    
+    l1[0]=l1[0] +'\n' + rlf_run
+    l2[0]=l2[0] +'\n' + sf_z
+    
+    axnt.legend(h1+h2,l1+l2,bbox_to_anchor= (-0.25,-0.5),loc='lower left')
 
 
 # Set master location
@@ -102,7 +119,7 @@ with rasterio.open(raster,'r') as src:
     left1, bottom1, right1, top1 = src.bounds
     dem=src.read()[0,:,:]
     
-raster=master_location+'wrr2_raster_outputs/rlf_runoff_corr.tif'
+raster=master_location+'wrr2_raster_outputs/rlf_runoff_corr2.tif'
 with rasterio.open(raster,'r') as src:
     raster_crs=src.crs
     left, bottom, right, top = src.bounds
@@ -307,7 +324,7 @@ ax2.text(0.01, 0.99, 'B',
 plt.tight_layout()
 
 ## Load global
-df_global=pd.read_csv(master_location+'wrr2_derived_data_v3.csv')
+df_global=pd.read_csv(master_location+'wrr2_derived_data_v4.csv')
 df_global=df_global.drop(index=df_global.index[np.isnan(df_global['mean_z'])])
 df_global=df_global.reset_index(drop=True)
 # Calc percents
@@ -323,9 +340,9 @@ df_global_s=df_global_s.reset_index(drop=True)
 global_perc_snow=df_global_s['qsm']/df_global_s['mean_runoff']
 
 
-f2=plt.figure(2,figsize=(8,4)) 
+f2=plt.figure(2,figsize=(8.5,5)) 
 f2.set_dpi(250)
-gs=f1.add_gridspec(1,3)
+gs=f2.add_gridspec(1,3)
 
 ax3=f2.add_subplot(gs[0,0])
 plot_and_fit_ref(ax3,df_global_s,bl3,br3,bb3,bt3,bc_col,True,False)
@@ -357,5 +374,5 @@ ax5.text(0.01, 0.99, 'C',
 plt.tight_layout()
 plt.rcdefaults()
 
-f1.savefig('P1_figure8.pdf',dpi="figure")
+# f1.savefig('P1_figure8.pdf',dpi="figure")
 f2.savefig('P1_figure10.pdf',dpi="figure")

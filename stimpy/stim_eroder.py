@@ -29,6 +29,7 @@ class StimEroder:
         self.cum_E = np.zeros(len(sobj.z0)) # Initiate cumulative erosion value
         self.cum_U = np.zeros(len(sobj.z0)) # Intitiate cumulate uplift value
         self.days_E = np.zeros(len(sobj.z0)) # Initiate days that erosion is exceeded
+        self.max_cfl = 0
         print('Eroder instance created')
         
     def incision(self,sobj,q,qbar,dts):
@@ -60,5 +61,8 @@ class StimEroder:
         self.days_E[1:]=self.days_E[1:]+ (I[1:]<0).astype(int)
         self.I = I
         self.cum_E[1:] = self.cum_E[1:] + I[1:]
+        self.cfl=cfl
+        if cfl > self.max_cfl:
+            self.max_cfl=cfl
         if cfl>1:
             print('Warning : Stability Criteria Violated')

@@ -7,7 +7,7 @@ Created on Sun Jan  8 13:42:31 2023
 """
 
 import sys
-sys.path.insert(0,'/Users/aforte/Documents/GitHub/snowmelt-tectonics')
+sys.path.insert(0,'/Users/aforte/Documents/GitHub/snowmelt_orography')
 import stimpy as st
 import os
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ import pandas as pd
 from cmcrameri import cm
 from matplotlib import colors
 
-master_location='/Volumes/Choruh/Data/snowmelt_project/model_outputs/'
+master_location='/Users/aforte/Documents/Python/snowmelt/model_outputs_v2'
 model_list1U=['gc025u','gc05u','gc1u','gc2u','gc4u','gc8u']
 title_list=['GC025U','GC05U','GC1U','GC2U','GC4U','GC8U']
 dict_list1U=[]
@@ -30,11 +30,11 @@ xb=np.linspace(0,12,50)
 yb=np.linspace(0,2.5,50)
 
 
-emp_master_location='/Volumes/Choruh/Data/snowmelt_project/'
-# emp_master_location='/Users/aforte/Documents/Python/snowmelt/'
+# emp_master_location='/Volumes/Choruh/Data/snowmelt_project/'
+emp_master_location='/Users/aforte/Documents/Python/snowmelt/'
 
 ## Load global
-df_global=pd.read_csv(emp_master_location+'wrr2_derived_data_v3.csv')
+df_global=pd.read_csv(emp_master_location+'wrr2_derived_data_v4.csv')
 df_global=df_global.drop(index=df_global.index[np.isnan(df_global['mean_z'])])
 df_global=df_global.reset_index(drop=True)
 

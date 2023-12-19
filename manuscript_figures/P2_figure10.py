@@ -59,7 +59,8 @@ def response_time2(K,n,m,ka,h,xc,L,Uf,ksn0):
     TU = bta * term1 * term2 * term3 * term4
     return TU
 
-master_location='/Volumes/Choruh/Data/snowmelt_project/model_outputs/'
+master_dir='/Users/aforte/Documents/Python/snowmelt'
+master_location=master_dir+'/model_outputs_v2/'
 
 model_list1U=['gc025u','gc05u','gc1u','gc2u','gc4u','gc8u']
 model_list1L=['gc025l','gc05l','gc1l','gc2l','gc4l','gc8l']
@@ -72,8 +73,11 @@ model_list3L=['bc025l','bc05l','bc1l','bc2l','bc4l','bc8l']
 
 
 # Set thresholds for determining empirical steady-state
-mx_thresh=0.1
-mn_thresh=0.005
+mx_threshP=0.1 # Fraction of uplift per timestep
+mn_threshP=0.005
+U=np.array([250,500,1000,2000,4000,8000]) # Uplift rate in m/Myr
+UP=U*(5000/1e6) # Uplift in 1 output timestep of 5000 
+
 # Set colors
 gc_col='black'
 alps_col='royalblue'
@@ -114,6 +118,10 @@ n=fit_df.loc[idx,'n'].to_numpy()
 for i in range(len(model_list1U)):
     mObj=st.Stim1D(os.path.join(master_location,model_list1U[i]))
     [ts,u,dmxz,dmnz,mxdz]=mObj.calculate_ss()
+    
+    mx_thresh=UP[i]*mx_threshP
+    mn_thresh=UP[i]*mn_threshP
+    
     mxix=np.nonzero(dmxz<mx_thresh)[0][:1][0]
     mnix=np.nonzero(dmnz<mn_thresh)[0][:1][0]
     ss_mxz1U.append(ts[mxix])
@@ -140,6 +148,10 @@ n=fit_df.loc[idx,'n'].to_numpy()
 for i in range(len(model_list1L)):
     mObj=st.Stim1D(os.path.join(master_location,model_list1L[i]))
     [ts,u,dmxz,dmnz,mxdz]=mObj.calculate_ss()
+        
+    mx_thresh=UP[i]*mx_threshP
+    mn_thresh=UP[i]*mn_threshP
+        
     mxix=np.nonzero(dmxz<mx_thresh)[0][:1][0]
     mnix=np.nonzero(dmnz<mn_thresh)[0][:1][0]
     ss_mxz1L.append(ts[mxix])
@@ -167,6 +179,11 @@ n=fit_df.loc[idx,'n'].to_numpy()
 for i in range(len(model_list2U)):
     mObj=st.Stim1D(os.path.join(master_location,model_list2U[i]))
     [ts,u,dmxz,dmnz,mxdz]=mObj.calculate_ss()
+    
+    mx_thresh=UP[i]*mx_threshP
+    mn_thresh=UP[i]*mn_threshP
+        
+    
     mxix=np.nonzero(dmxz<mx_thresh)[0][:1][0]
     mnix=np.nonzero(dmnz<mn_thresh)[0][:1][0]
     ss_mxz2U.append(ts[mxix])
@@ -193,6 +210,10 @@ n=fit_df.loc[idx,'n'].to_numpy()
 for i in range(len(model_list2L)):
     mObj=st.Stim1D(os.path.join(master_location,model_list2L[i]))
     [ts,u,dmxz,dmnz,mxdz]=mObj.calculate_ss()
+    
+    mx_thresh=UP[i]*mx_threshP
+    mn_thresh=UP[i]*mn_threshP
+    
     mxix=np.nonzero(dmxz<mx_thresh)[0][:1][0]
     mnix=np.nonzero(dmnz<mn_thresh)[0][:1][0]
     ss_mxz2L.append(ts[mxix])
@@ -220,6 +241,10 @@ n=fit_df.loc[idx,'n'].to_numpy()
 for i in range(len(model_list3U)):
     mObj=st.Stim1D(os.path.join(master_location,model_list3U[i]))
     [ts,u,dmxz,dmnz,mxdz]=mObj.calculate_ss()
+    
+    mx_thresh=UP[i]*mx_threshP
+    mn_thresh=UP[i]*mn_threshP
+    
     mxix=np.nonzero(dmxz<mx_thresh)[0][:1][0]
     mnix=np.nonzero(dmnz<mn_thresh)[0][:1][0]
     ss_mxz3U.append(ts[mxix])
@@ -246,6 +271,10 @@ n=fit_df.loc[idx,'n'].to_numpy()
 for i in range(len(model_list3L)):
     mObj=st.Stim1D(os.path.join(master_location,model_list3L[i]))
     [ts,u,dmxz,dmnz,mxdz]=mObj.calculate_ss()
+    
+    mx_thresh=UP[i]*mx_threshP
+    mn_thresh=UP[i]*mn_threshP
+    
     mxix=np.nonzero(dmxz<mx_thresh)[0][:1][0]
     mnix=np.nonzero(dmnz<mn_thresh)[0][:1][0]
     ss_mxz3L.append(ts[mxix])
@@ -418,13 +447,13 @@ for i in range(len(model_list1L)):
 for i in range(len(model_list1U)):
     if i==0:
         # Max Z
-        ax1.scatter(ss_mxz1U[i],u1U[i]*1000,c=gc_col,marker='o')
-        ax1.scatter(ss_mxz2U[i],u2U[i]*1000,c=alps_col,marker='o')
-        ax1.scatter(ss_mxz3U[i],u3U[i]*1000,c=bc_col,marker='o')
+        ax1.scatter(ss_mxz1U[i],u1U[i]*1000,c=gc_col,marker='o',label='GC Unlinked')
+        ax1.scatter(ss_mxz2U[i],u2U[i]*1000,c=alps_col,marker='o',label='Alps Unlinked')
+        ax1.scatter(ss_mxz3U[i],u3U[i]*1000,c=bc_col,marker='o',label='BC Unlinked')
         # Analytical
-        ax2.scatter(ss_A1U[i],u1U[i]*1000,c=gc_col,marker='o',label='GC Unlinked')
-        ax2.scatter(ss_A2U[i],u2U[i]*1000,c=alps_col,marker='o',label='Alps Unlinked')
-        ax2.scatter(ss_A3U[i],u3U[i]*1000,c=bc_col,marker='o',label='BC Unlinked')
+        ax2.scatter(ss_A1U[i],u1U[i]*1000,c=gc_col,marker='o')
+        ax2.scatter(ss_A2U[i],u2U[i]*1000,c=alps_col,marker='o')
+        ax2.scatter(ss_A3U[i],u3U[i]*1000,c=bc_col,marker='o')
         # Compare
         ax3.scatter(ss_mxz1U[i],ss_A1U[i],c=gc_col,marker='o')
         ax3.scatter(ss_mxz2U[i],ss_A2U[i],c=alps_col,marker='o')
@@ -443,19 +472,19 @@ for i in range(len(model_list1U)):
         ax3.scatter(ss_mxz2U[i],ss_A2U[i],c=alps_col,marker='o')
         ax3.scatter(ss_mxz3U[i],ss_A3U[i],c=bc_col,marker='o')
 
-ax1.text(0.92, 0.99, 'A',
+ax1.text(0.01, 0.1, 'A',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax1.transAxes,
         fontsize=12,fontweight='extra bold')
-ax1.legend(loc='center right')
+ax1.legend(loc='upper right')
 
 ax2.text(0.92, 0.99, 'B',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax2.transAxes,
         fontsize=12,fontweight='extra bold')
-ax2.legend(loc='center right')
+# ax2.legend(loc='center right')
 
 ax3.text(0.01, 0.99, 'C',
         horizontalalignment='left',

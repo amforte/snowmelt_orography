@@ -10,6 +10,7 @@ import sys
 sys.path.insert(0,'/Users/aforte/Documents/GitHub/snowmelt_orography')
 import stimpy as st
 
+# master_location='/Users/aforte/Documents/snowmelt_project/'
 master_location='/Volumes/Choruh/Data/snowmelt_project/'
 
 output_dir=master_location+'model_outputs/gc8l'
@@ -20,7 +21,7 @@ rObj=st.GenerateRunoff(sObj,'emp',random_state='linked',location='Greater Caucas
 # Generate eroder instance
 eObj=st.StimEroder(sObj,8e-3)
 # Generate counter instance
-cObj=st.StimCounter(1,0.75e6,5000,100)
+cObj=st.StimCounter(1,1e6,5000,100)
 # Generate model instance
 mObj=st.Stim1D(output_dir)
 # Run model

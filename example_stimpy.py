@@ -32,7 +32,7 @@ sObj=st.Stream(25000,25,dx=100)
 # Inputs are:
 #	stream instance (sObj)
 #	the type of rule for relating topography to runoff and variability ('emp')
-#	if rule is 'emp', must specify a valid location for which relationships have been generated
+#	if rule is 'emp' or 'emp_rain', must specify a valid location for which relationships have been generated
 #		(location='Greater Caucasus')
 #	control on whether events are linked or unlinked, (random_state='unlinked')
 rObj=st.GenerateRunoff(sObj,'emp',random_state='unlinked',location='Greater Caucasus')
@@ -42,6 +42,9 @@ rObj=st.GenerateRunoff(sObj,'emp',random_state='unlinked',location='Greater Cauc
 #	stream instance (sObj)
 #	uplift rate in m/yr (1e-3)
 eObj=st.StimEroder(sObj,1e-3)
+# Uplift can also spatially vary, but must be same dimensions as x
+# u=np.linspace(1e-3,2e-3,len(sObj.x))
+# eObj=st.StimEroder(sObj,u)
 
 ## Generate counter instance
 # Inputs are:
@@ -63,6 +66,14 @@ mObj.run_new_model(cObj,sObj,eObj,rObj)
 #	Time to restart the model (500000)
 #	New time to run model to (1000000)
 mObj.restart_model(500000,1000000)
+# Restart model with different save location and updated timestep (e.g., to run a portion of the
+# model at a finer resolution)
+# Inputs are:
+#	Time to restart model (300000)
+#	New time to run model to (310000)
+#	Updated save frequency (200)
+#	New location to save ouptuts to (master_location+'stim_subsample_test')
+mObj.restart_model(300000,310000,200,master_location+'stim_subsample_test')
 # Plot profile results
 # Inputs are:
 #	title for grapth ('STIM Model - Restart')

@@ -87,7 +87,7 @@ plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 f1=plt.figure(1,figsize=(6,8))
-f1.set_dpi(250)
+f1.set_dpi(350)
 
 gs=f1.add_gridspec(2,1)
 
@@ -117,7 +117,7 @@ sc1=plt.scatter(df.loc[idx1,'FullMeanR'],df.loc[idx1,'FullRC1'],s=15,c=df.loc[id
 plt.scatter(df.loc[idx2,'FullMeanR'],df.loc[idx2,'FullRC1'],s=20,c=df.loc[idx2,'MAT'],cmap=cm.vik,marker='s',edgecolors='k',label='Filtered HCDN-2009',vmin=-10,vmax=25)
 plt.plot(R,0.109*MAR**0.21,c='k',label='Rainfall-dominated runoff (Rossi et al., 2016)')
 cbar1=plt.colorbar(sc1,ax=ax2)
-cbar1.ax.set_ylabel('MAT [C]')
+cbar1.ax.set_ylabel('MAT [$^\circ$C]')
 plt.legend(loc='best')
 # plt.legend(bbox_to_anchor= (-0.1,-0.5),loc='lower left')
 ax2.text(0.01, 0.99, 'B',

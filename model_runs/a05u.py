@@ -10,10 +10,11 @@ import sys
 sys.path.insert(0,'/Users/aforte/Documents/GitHub/snowmelt_orography')
 import stimpy as st
 
-master_location='/Volumes/Choruh/Data/snowmelt_project/'
+master_location='/Users/aforte/Documents/snowmelt_project/'
+# master_location='/Volumes/Choruh/Data/snowmelt_project/'
 
 ## STIM Daily Model ##
-output_dir=master_location+'model_outputs/a05u'
+output_dir=master_location+'new_model_outputs/a05u'
 # Generate stream  instance
 sObj=st.Stream(50000,25,dx=100,bin_size=2000)
 # Generate runoff instance
@@ -21,7 +22,7 @@ rObj=st.GenerateRunoff(sObj,'emp',random_state='unlinked',location='Alps',window
 # Generate eroder instance
 eObj=st.StimEroder(sObj,0.5e-3)
 # Generate counter instance
-cObj=st.StimCounter(1,5.5e6,5000,100)
+cObj=st.StimCounter(1,6.5e6,5000,100)
 # Generate model instance
 mObj=st.Stim1D(output_dir)
 # Run model

@@ -67,12 +67,12 @@ class StimSteady:
         E=integrate.simpson(Ipdf,Rvec)
         return E,Rc*(24*60*60*10*100)
     
-    def stim_range_dim(self,Rbar,cr,max_ksn=700,num_points=200,space_type='log'):
+    def stim_range_dim(self,Rbar,cr,min_ksn=1,max_ksn=700,num_points=200,space_type='log'):
         # Initialize variables
         if space_type=='log':
-            Ks=np.logspace(0,np.log10(max_ksn),num=num_points)
+            Ks=np.logspace(np.log10(min_ksn),np.log10(max_ksn),num=num_points)
         elif space_type=='lin':
-            Ks=np.linspace(1,max_ksn,num=num_points)        
+            Ks=np.linspace(min_ksn,max_ksn,num=num_points)        
         E=np.zeros((num_points,1))
         Rc=np.zeros((num_points,1))
         for i in range(len(Ks)):

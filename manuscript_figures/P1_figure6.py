@@ -21,7 +21,7 @@ warnings.filterwarnings('ignore',message='Singular matrix in solving dual proble
 master_location='/Users/aforte/Documents/Python/snowmelt/'
 
 ## Load global
-df=pd.read_csv(master_location+'wrr2_derived_data_v3.csv')
+df=pd.read_csv(master_location+'wrr2_derived_data_v4.csv')
 df=df.drop(index=df.index[np.isnan(df['mean_z'])])
 df=df.reset_index(drop=True)
 
@@ -44,7 +44,7 @@ perc_snow=df_s['qsm']/df_s['mean_runoff']
 lt=df_s['latitude'].to_numpy()
 mz=df_s['max_z'].to_numpy()
 mnz=df_s['mean_z'].to_numpy()
-mrl=df_s['mean_rlf'].to_numpy()
+mrl=df_s['mean_rlf25'].to_numpy()
 cr=df_s['r_c1'].to_numpy()
 mr=df_s['mean_runoff'].to_numpy()
 cp=df_s['p_c'].to_numpy()
@@ -121,7 +121,7 @@ plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 f1=plt.figure(1,figsize=(8,10))
-f1.set_dpi(250)
+f1.set_dpi(350)
 
 ax1=plt.subplot(5,2,1)
 ax1.scatter(mt,yr5,c='darkred',s=5,alpha=0.25)
@@ -129,8 +129,8 @@ ax1.scatter(mt,yr5,c='darkred',s=5,alpha=0.25)
 x=np.linspace(np.min(mt),np.max(mt))
 plt.plot(x,slp*x+intc,c='k',linestyle=':',label=r'$R^{2}$ = '+str(np.round(rv**2,3)))
 plt.legend(loc='lower right')
-ax1.set_xlabel('SURFEX-TRIP MAT [C]')
-ax1.set_ylabel('RFR Predicted MAT [C]')
+ax1.set_xlabel('SURFEX-TRIP MAT [$^\circ$C]')
+ax1.set_ylabel('RFR Predicted MAT [$^\circ$C]')
 ax1.text(0.01, 0.99, 'A',
         horizontalalignment='left',
         verticalalignment='top',
@@ -177,7 +177,7 @@ ax5.scatter(mr,yr2,c='darkblue',s=5,alpha=0.25)
 x=np.linspace(np.min(mr),np.max(mr))
 plt.plot(x,slp*x+intc,c='k',linestyle=':',label=r'$R^{2}$ = '+str(np.round(rv**2,3)))
 plt.legend(loc='lower right')
-ax5.set_xlabel(r'WaterGap3 $\bar{R}$ [mm/day]')
+ax5.set_xlabel(r'WaterGAP3 $\bar{R}$ [mm/day]')
 ax5.set_ylabel(r'RFR Predicted $\bar{R}$ [mm/day]')
 ax5.text(0.01, 0.99, 'E',
         horizontalalignment='left',
@@ -246,4 +246,4 @@ ax10.text(0.95, 0.99, 'J',
 plt.tight_layout()
 plt.rcdefaults()
 f1.savefig('P1_figure6.png',dpi='figure')
-# f1.savefig('P1_figure6.pdf',dpi='figure')      
+f1.savefig('P1_figure6.pdf',dpi='figure')      

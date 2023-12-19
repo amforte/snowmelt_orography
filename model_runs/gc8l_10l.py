@@ -10,6 +10,7 @@ import sys
 sys.path.insert(0,'/Users/aforte/Documents/GitHub/snowmelt_orography')
 import stimpy as st
 
+# master_location='/Users/aforte/Documents/snowmelt_project/'
 master_location='/Volumes/Choruh/Data/snowmelt_project/'
 
 ## STIM Daily Model ##

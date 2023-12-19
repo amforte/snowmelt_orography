@@ -91,9 +91,36 @@ class ModelComparison:
             eObj=pickle.load(f)
             rObj=pickle.load(f)
         return cObj,spObj,sObj,eObj,rObj
+
+    def output_result_dict(self,clip_ts,last_n_ts=None):
+        # Build ts list
+        ts_list=[]
+        ts0_list=[]
+        ts1_list=[]
+        for i in range(self.num_models):
+            ts=self.sorted_time_steps(self.model_list[i],self.prefix_list[i])
+            ts_list.append(ts)
+            ts0_list.append(ts[0])
+            ts1_list.append(ts[-1])
+        # Determine type
+        type_list=self.determine_type(ts0_list)
+        
+        d_list=[]
+        for i in range(self.num_models):
+            if type_list[i]=='STIM':
+                mObj=Stim1D(os.path.join(self.parent_directory,self.model_list[i]))
+            elif type_list[i]=='SPIM':
+                mObj=Spim1D(os.path.join(self.parent_directory,self.model_list[i]))
+                
+            if last_n_ts==None:    
+                d=mObj.parse_results(0,clip_ts[i],False,1e-1)
+            else:
+                tsOI=ts_list[i]
+                d=mObj.parse_results(tsOI[-last_n_ts],tsOI[-1],False,1e-1)
+            d_list.append(d)
+        return d_list    
     
-    
-    def comp_model_setup_plot(self,yr_list,rec_length,num_trials,n_skip=1,stream='long profile',seed=1,max_z=None):
+    def comp_model_setup_plot(self,yr_list,rec_length,num_trials,n_skip=1,stream='long profile',seed=1,max_z=None,max_ksn=550):
         letters=list(string.ascii_uppercase)
         # Set figure details
         SMALL_SIZE = 8
@@ -122,6 +149,11 @@ class ModelComparison:
             elif type_list[i]=='SPIM':
                 [cObj,spObj,sObj,eObj,rObj]=self.recover_spim_state(fname)
             
+            ksn=np.diff(sObj.z-sObj.zb)/np.diff(sObj.chi)
+            ksn=np.concatenate(([ksn[0]],ksn),axis=0)
+            # Estimate relief by bins based on the empirical relationship between ksn and relief
+            mean_ksn=np.bincount(sObj.ix,ksn,sObj.num_bins)[1:sObj.num_bins+1]/np.bincount(sObj.ix,None,sObj.num_bins)[1:sObj.num_bins+1]
+            
             col_vec=colors.Normalize(vmin=0,vmax=len(sObj.uix)-1)
             
             if stream=='long profile':
@@ -130,6 +162,11 @@ class ModelComparison:
                 if i==0:
                     ax1.set_ylabel('Elevation [km]')
                 ax1.set_title(self.descript_list[i])
+                ax1a=ax1.twinx()
+                if i==self.num_models-1:
+                    ax1a.set_ylabel(r'Mean k$_{sn}$ of Bin')
+                ax1a.set_ylim(0,max_ksn)
+                
             elif stream=='chi':
                 ax1=f1.add_subplot(gs[0,i])
                 ax1.set_xlabel(r'$\chi$')
@@ -145,6 +182,18 @@ class ModelComparison:
                 ax2.set_ylabel('Shape Parameter')
             ax2.set_xlim((-0.25,12.1))
             ax2.set_ylim((0,2.5))
+            ax2.set_facecolor('none')
+            ax2a=ax2.twinx()
+            if i==self.num_models-1:
+                ax2a.set_ylabel('Count of Mean Runoff Bin Values')
+            ax2a.set_ylim((0,18))
+            ax2a.set_zorder(-1)
+            ax2a.set_facecolor('none')
+            # ax2b=ax2.twiny()
+            # ax2b.set_xlabel('Count of Shape Bin Values')
+            # ax2b.set_xlim((0,16))
+            # ax2b.set_zorder(-2)
+            
             # ax2.set_xscale('log')
             
             ax3=f1.add_subplot(gs[2,i])
@@ -168,16 +217,20 @@ class ModelComparison:
             # qday=rObj.route_record_discharge(sObj,rts,count)
             # r_daily=(qday[:,0]/sObj.A[0])*(10*100*24*60*60)
             # mn_day=r_daily[0]
-        
+            
+            ax2a.hist(rObj.r_bin,np.linspace(0,12,13),zorder=0,color='lightblue',edgecolor='k',alpha=0.5)
+            # ax2b.hist(rObj.cr_bin,np.linspace(0,2.5,13),color='lightblue',edgecolor='k',orientation='horizontal',alpha=0.5)
 
-            ax2.scatter(mc_dict['aw_mean_runoff'],mc_dict['aw_cr'],c='w',s=40,zorder=1,marker='s',label='Area Weighted Mean',edgecolor='k')
-            ax2.scatter(np.median(mc_dict['mean_runoffs']),np.median(mc_dict['tail_fit_cr']),c='k',s=40,zorder=2,label='Median of Trials')
+            ax2.scatter(mc_dict['aw_mean_runoff'],mc_dict['aw_cr'],c='w',s=40,zorder=2,marker='s',label='Area Weighted Mean',edgecolor='k')
+            ax2.scatter(np.median(mc_dict['mean_runoffs']),np.median(mc_dict['tail_fit_cr']),c='k',s=40,zorder=3,label='Median of Trials')
             
             ax2.plot([np.median(mc_dict['mean_runoffs']),np.median(mc_dict['mean_runoffs'])],
-                      [np.percentile(mc_dict['tail_fit_cr'],25),np.percentile(mc_dict['tail_fit_cr'],75)],c='k',linewidth=0.5,zorder=1)
+                      [np.percentile(mc_dict['tail_fit_cr'],25),np.percentile(mc_dict['tail_fit_cr'],75)],c='k',linewidth=0.5,zorder=2)
             ax2.plot([np.percentile(mc_dict['mean_runoffs'],25),np.percentile(mc_dict['mean_runoffs'],75)],
-                      [np.median(mc_dict['tail_fit_cr']),np.median(mc_dict['tail_fit_cr'])],c='k',linewidth=0.5,zorder=1,label='Interquartile Range')
-            ax2.scatter(mc_dict['mean_runoffs'],mc_dict['tail_fit_cr'],c='gray',s=1,alpha=0.5,zorder=0,label='All Trials Tail Fit')
+                      [np.median(mc_dict['tail_fit_cr']),np.median(mc_dict['tail_fit_cr'])],c='k',linewidth=0.5,zorder=2,label='Interquartile Range')
+            ax2.scatter(mc_dict['mean_runoffs'],mc_dict['tail_fit_cr'],c='gray',s=1,alpha=0.5,zorder=1,label='All Trials Tail Fit')
+            
+            
             
             ax3.plot(r_vec,weibull_min.sf(r_vec,mc_dict['aw_cr'],loc=0,scale=mc_dict['aw_sr']),
                       c='k',linewidth=2,label='Area Weighted Mean',zorder=1,linestyle='--')
@@ -198,6 +251,10 @@ class ModelComparison:
                 if stream=='long profile':
                     # Long Profile
                     ax1.plot(x/1000,z/1000,c=cm.roma(col_vec(j)),linewidth=2,zorder=0)
+                    if j==0:
+                        ax1a.scatter(np.mean(x/1000),mean_ksn[j],color=cm.roma(col_vec(j)),s=20,marker='o',edgecolor='k',label=r'Mean k$_{sn}$')
+                    else:
+                        ax1a.scatter(np.mean(x/1000),mean_ksn[j],color=cm.roma(col_vec(j)),s=20,marker='o',edgecolor='k')
                     if j==0:
                         ax1.scatter(x[0]/1000,z[0]/1000,c='k',s=5,zorder=1,marker='s')
                         ax1.scatter(x[-1]/1000,z[-1]/1000,c='k',s=5,zorder=1,marker='s')
@@ -220,7 +277,8 @@ class ModelComparison:
                 ax3.scatter(rts[j,0],weibull_min.sf(rts[j,0],rObj.cr_bin[j],loc=0,scale=rObj.sr_bin[j]),
                             color=cm.roma(col_vec(j)),zorder=2,edgecolor='k',marker='s',s=20)
             if i>0:
-                ax2.legend(loc='upper center')
+                ax2.legend(loc='upper right')
+                ax1a.legend(loc='upper right')
             
             ax1.text(0.01, 0.99, letters[letter_order[0,i]],
                     horizontalalignment='left',
@@ -342,6 +400,7 @@ class ModelComparison:
                             color=cm.roma(col_vec(i)),zorder=2,edgecolor='k',marker='s')
             ax3.legend(loc='best')
             
+    
     def comp_excd_prob(self,max_ep,max_e,clip_ts,col_list):
         # Build ts list
         ts_list=[]
@@ -465,6 +524,142 @@ class ModelComparison:
 
         
         f1.tight_layout()
+        plt.rcdefaults()
+        return f1
+
+    def comp_excd_prob2(self,max_ep,max_e,clip_ts,col_list):
+        # Build ts list
+        ts_list=[]
+        ts0_list=[]
+        ts1_list=[]
+        for i in range(self.num_models):
+            ts=self.sorted_time_steps(self.model_list[i],self.prefix_list[i])
+            ts_list.append(ts)
+            ts0_list.append(ts[0])
+            ts1_list.append(ts[-1])
+        # Determine type
+        type_list=self.determine_type(ts0_list)
+        max_ts=np.max(np.array(ts1_list))
+        
+        # Generate figure details
+        letters=list(string.ascii_uppercase)
+        # Set figure details
+        SMALL_SIZE = 8
+        MEDIUM_SIZE = 10
+        BIGGER_SIZE = 12
+        plt.rc('font', size=SMALL_SIZE,family='Futura')          # controls default text sizes
+        plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
+        plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+        plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+        plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+        plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+        plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+        # Initiate figure
+        f1=plt.figure(figsize=(8,8),layout='tight')
+        f1.set_dpi(250)
+        gs=gridspec.GridSpec(6,self.num_models)
+        num_panels=4
+        letter_order=np.arange(0,self.num_models*num_panels,1).reshape((num_panels,self.num_models))
+    
+
+     
+        
+        for i in range(self.num_models):
+            if type_list[i]=='STIM':
+                mObj=Stim1D(os.path.join(self.parent_directory,self.model_list[i]))
+            elif type_list[i]=='SPIM':
+                mObj=Spim1D(os.path.join(self.parent_directory,self.model_list[i]))
+            d=mObj.parse_results(0,clip_ts[i],False,1e-1) 
+            
+            x=d['x']
+            ts=d['ts']
+            fts=d['freq_to_save']
+            eCout=d['eCout']
+            dout=d['dout']
+            
+            # Calculate average erosion rate
+            avgE=np.diff(eCout,axis=0)
+            avgE=np.concatenate((eCout[0,:].reshape((1,len(eCout[0,:]))),avgE),axis=0)
+            avgE=((avgE*(-1))/fts)*(10*100)
+            
+            # Calculate percentage of days where erosion threshold is exceeded
+            excdP=np.diff(dout,axis=0)
+            excdP=np.concatenate((dout[0,:].reshape((1,len(dout[0,:]))),excdP),axis=0)
+            excdP=excdP/(fts*365)
+            
+            cumP=dout[-1,:]/(ts[-1]*365)
+            
+            ax1a=f1.add_subplot(gs[3,i])
+            ax1a.plot(x[1:]/1000,cumP[1:],c=col_list[i])
+            ax1a.set_xlabel('Stream Distance [km]')
+            ax1a.set_ylabel('Cum. Ex.')
+            ax1a.set_ylim((0,max_ep))
+            ax1a.set_xlim((0,np.max(x)/1000))
+
+            ax23=f1.add_subplot(gs[4:,i])
+            ax23.spines['top'].set_color('none')
+            ax23.spines['bottom'].set_color('none')
+            ax23.spines['left'].set_color('none')
+            ax23.spines['right'].set_color('none')
+            ax23.tick_params(labelcolor='w', top=False, bottom=False, left=False, right=False)
+            ax23.set_ylabel('Frequency of E. Threshold Exceedance')            
+            
+            ax2=f1.add_subplot(gs[4,i])
+            ax2.set_xlabel('Model Time [Myr]')
+            
+            ax3=f1.add_subplot(gs[5,i])
+            ax3.set_xlabel('Avgerage Erosion Rate [mm/yr]')
+    
+            ax1=f1.add_subplot(gs[0:3,i])
+            ax1.set_title(self.descript_list[i])
+            im1=ax1.imshow(np.flipud(excdP),extent=[x[0]/1000,x[-1]/1000,ts[0]/1e6,ts[-1]/1e6],
+                       cmap=cm.hawaii_r,norm=colors.Normalize(vmin=0,vmax=max_ep),aspect='auto')
+            cbar1=f1.colorbar(im1,ax=ax1,orientation='horizontal')
+            ax1.set_xlabel('Stream Distance [km]')
+            ax1.set_ylabel('Model Time [Myr]')
+            cbar1.ax.set_xlabel('Frequency of Erosion Threshold Exceedance') 
+    
+            
+            ax2.plot(ts/1e6,np.mean(excdP,axis=1),label=self.descript_list[i],
+                     c=col_list[i],linewidth=1.5)
+            ax2.plot(ts/1e6,np.min(excdP,axis=1),
+                     linestyle='--',c=col_list[i],linewidth=0.5)
+            ax2.plot(ts/1e6,np.max(excdP,axis=1),
+                     linestyle='--',c=col_list[i],linewidth=0.5)
+            ax2.set_ylim((-0.01,max_ep*1.5))
+            
+
+            xb=np.linspace(0,max_e,50)
+            yb=np.linspace(0,max_ep,50)
+            im2=ax3.hist2d(avgE.ravel(),excdP.ravel(),[xb,yb],norm=colors.LogNorm(vmin=1,vmax=10000),cmap=cm.grayC)
+            cbar2=plt.colorbar(im2[3],ax=ax3)
+            cbar2.ax.set_ylabel('Density')
+            
+            ax1.text(0.01, 0.99, letters[letter_order[0,i]],
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform=ax1.transAxes,
+                    fontsize=12,fontweight='extra bold')
+            
+            ax1a.text(0.95, 0.99, letters[letter_order[1,i]],
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform=ax1a.transAxes,
+                    fontsize=12,fontweight='extra bold')
+            ax2.text(0.01, 0.99, letters[letter_order[2,i]],
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform=ax2.transAxes,
+                    fontsize=12,fontweight='extra bold')
+            ax3.text(0.01, 0.99, letters[letter_order[3,i]],
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform=ax3.transAxes,
+                    fontsize=12,fontweight='extra bold')            
+                            
+        # ax2.legend(loc='best')
+
+        # f1.tight_layout()
         plt.rcdefaults()
         return f1
             
@@ -605,6 +800,166 @@ class ModelComparison:
         plt.tight_layout()
         plt.rcdefaults()
         return f1
+
+    def comp_profile_evol2(self,num_ts,max_z,max_e,max_q,clip_ts):
+        # Build ts list
+        ts_list=[]
+        ts0_list=[]
+        ts1_list=[]
+        for i in range(self.num_models):
+            ts=self.sorted_time_steps(self.model_list[i],self.prefix_list[i])
+            ts_list.append(ts)
+            ts0_list.append(ts[0])
+            ts1_list.append(ts[-1])
+        # Determine type
+        type_list=self.determine_type(ts0_list)
+        max_ts=np.max(clip_ts)
+        if max_ts==np.inf:
+            max_ts=np.max(np.array(ts1_list))
+        
+        # Account for zero time
+        num_ts=num_ts-1
+        
+        # Generate figure details
+        letters=list(string.ascii_uppercase)
+        # Set figure details
+        SMALL_SIZE = 8
+        MEDIUM_SIZE = 10
+        BIGGER_SIZE = 12
+        plt.rc('font', size=SMALL_SIZE,family='Futura')          # controls default text sizes
+        plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
+        plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+        plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+        plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+        plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+        plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+        # Initiate figure
+        f1=plt.figure(figsize=(8,9))
+        f1.set_dpi(250)
+        num_panels=4
+        gs=gridspec.GridSpec(num_panels,self.num_models)
+        letter_order=np.arange(0,self.num_models*num_panels,1).reshape((num_panels,self.num_models))
+        col_vec=colors.Normalize(vmin=0,vmax=max_ts)
+        
+        for i in range(self.num_models):
+            if type_list[i]=='STIM':
+                mObj=Stim1D(os.path.join(self.parent_directory,self.model_list[i]))
+            elif type_list[i]=='SPIM':
+                mObj=Spim1D(os.path.join(self.parent_directory,self.model_list[i]))
+            d=mObj.parse_results(0,clip_ts[i],False,1e-1)
+            
+            ts=d['ts']
+            x=d['x']
+            x_center=d['x_center']
+            z0=d['z0']
+            dt=d['dt']
+            fts=d['freq_to_save']
+            A=d['A']
+            slp0=d['slp0']
+            slp=d['sout']
+            zout=d['zout']
+            zcout=d['zcout']
+            chi=d['chi']
+            eCout=d['eCout']
+            eout=d['eout']*(-1)*(10*100)*(dt*365)
+            qout=d['qout']
+            mrout=d['mrout']
+            crout=d['crout']
+            rlf_Z=d['rlf_Z']
+            
+            avgE=np.diff(eCout,axis=0)
+            avgE=np.concatenate((eCout[0,:].reshape((1,len(eCout[0,:]))),avgE),axis=0)
+            avgE=((avgE*(-1))/fts)*(10*100)
+            
+            # Determine step
+            step=int(len(ts)/num_ts)
+            
+            # Chi-Elevation
+            ax1=f1.add_subplot(gs[0,i])
+            ax1.set_xlabel(r'$\chi$')
+            ax1.set_title(self.descript_list[i])
+            if i==0:
+                ax1.set_ylabel('Elevation [km]')
+            ax1.plot(chi,z0/1000,c='k',linestyle=':')
+            for j in range(0,len(ts),step):
+                ax1.plot(chi,zout[j,:]/1000,c=cm.batlowK_r(col_vec(ts[j])))
+            ax1.set_ylim((-0.01,max_z))
+            
+            # Stream profile
+            ax2=f1.add_subplot(gs[1,i])
+            ax2.set_xlabel('Stream Distance [km]')
+            if i==0:
+                ax2.set_ylabel('Elevation [km]')
+            ax2.plot(x/1000,z0/1000,c='k',linestyle=':')
+            for j in range(0,len(ts),step):
+                ax2.plot(x/1000,zout[j,:]/1000,c=cm.batlowK_r(col_vec(ts[j])))
+            norm=colors.Normalize(vmin=0,vmax=np.max(max_ts)/1e6)
+            cbar1=plt.colorbar(cmm.ScalarMappable(norm=norm,cmap=cm.batlowK_r),ax=ax2)
+            if i>0:
+                cbar1.ax.set_ylabel('Model Time [Myrs]')
+            ax2.set_ylim((-0.01,max_z))
+            ax2.set_xlim((0,np.max(x/1000)))
+            
+            # Erosion rate
+            ax3=f1.add_subplot(gs[2,i])
+            ax3.set_xlabel('Stream Distance [km]')
+            if i==0:
+                ax3.set_ylabel('Model Time [Myrs]')
+            im1=ax3.imshow(np.flipud(avgE),extent=[x[0]/1000,x[-1]/1000,ts[0]/1e6,ts[-1]/1e6],
+                       cmap=cm.tokyo_r,norm=colors.Normalize(vmin=0,vmax=max_e),aspect='auto')
+            cbar3=plt.colorbar(im1,ax=ax3)
+            if i>0:
+                cbar3.ax.set_ylabel('Erosion Rate [mm/yr]')
+            
+           
+            # # Discharge    
+            # ax4=f1.add_subplot(gs[3,i])
+            # ax4.set_xlabel('Stream Distance [km]')
+            # if i==0:
+            #     ax4.set_ylabel('Model Time [Myrs]')
+            # im2=ax4.imshow(np.flipud(qout),extent=[x[0]/1000,x[-1]/1000,ts[0]/1e6,ts[-1]/1e6],
+            #            cmap=cm.davos_r,norm=colors.Normalize(vmin=0,vmax=max_q),aspect='auto')
+            # cbar4=plt.colorbar(im2,ax=ax4)
+            # if i>0:
+            #     cbar4.ax.set_ylabel('Discharge [$m^{3}/s$]')
+
+            # Discharge    
+            ax4=f1.add_subplot(gs[3,i])
+            ax4.set_xlabel('Stream Distance [km]')
+            if i==0:
+                ax4.set_ylabel('Model Time [Myrs]')
+            im2=ax4.imshow(np.flipud(mrout),extent=[x_center[0]/1000,x_center[-1]/1000,ts[0]/1e6,ts[-1]/1e6],
+                       cmap=cm.davos_r,norm=colors.Normalize(vmin=0,vmax=max_q),aspect='auto')
+            cbar4=plt.colorbar(im2,ax=ax4)
+            if i>0:
+                cbar4.ax.set_ylabel('Mean Runoff [mm/day]')
+            
+
+                
+            ax1.text(0.01, 0.99, letters[letter_order[0,i]],
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform=ax1.transAxes,
+                    fontsize=12,fontweight='extra bold')
+            ax2.text(0.01, 0.99, letters[letter_order[1,i]],
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform=ax2.transAxes,
+                    fontsize=12,fontweight='extra bold')
+            ax3.text(0.01, 0.99, letters[letter_order[2,i]],
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform=ax3.transAxes,
+                    fontsize=12,fontweight='extra bold')
+            ax4.text(0.01, 0.99, letters[letter_order[3,i]],
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    transform=ax4.transAxes,
+                    fontsize=12,fontweight='extra bold')               
+            
+        plt.tight_layout()
+        plt.rcdefaults()
+        return f1
         
         
     def time_to_ss(self,grp_num,line_style):
@@ -709,7 +1064,34 @@ class ModelComparison:
                 
         plt.tight_layout()
         plt.rcdefaults()
-        
+    
+    def stability_values(self):
+        # Build ts list
+        yr_list=[]
+        for i in range(self.num_models):
+            ts=self.sorted_time_steps(self.model_list[i],self.prefix_list[i])
+            yr_list.append(ts[-1])
+              
+        type_list=self.determine_type(yr_list)
+
+        stabil=np.zeros(self.num_models)
+
+        for i in range(self.num_models):
+            yr=int(yr_list[i])
+            ts=self.sorted_time_steps(self.model_list[i],self.prefix_list[i])
+            ix=np.argmin(np.abs(ts-yr))
+            
+            fname1=os.path.join(self.parent_directory,self.model_list[i],self.prefix_list[i]+str(ts[ix])+'.pkl')                
+            if type_list[i]=='STIM':
+                [cObj1,sObj1,eObj1,rObj1]=self.recover_stim_state(fname1)
+            elif type_list[i]=='SPIM':
+                [cObj1,spObj1,sObj1,eObj1,rObj1]=self.recover_spim_state(fname1)
+
+            stabil[i]=eObj1.max_cfl
+
+        return stabil
+
+
     def ksn_final_ts(self,rp_slp,rp_yint):
         # Build ts list
         yr_list=[]
@@ -721,12 +1103,18 @@ class ModelComparison:
         
         mn_ksn=np.zeros(self.num_models)
         std_ksn=np.zeros(self.num_models)
+        stde_ksn=np.zeros(self.num_models)
         mn_ksnqr=np.zeros(self.num_models)
         std_ksnqr=np.zeros(self.num_models)
+        stde_ksnqr=np.zeros(self.num_models)
         mn_ksnqp=np.zeros(self.num_models)
         std_ksnqp=np.zeros(self.num_models)
+        stde_ksnqp=np.zeros(self.num_models)
         mn_E=np.zeros(self.num_models)
         std_E=np.zeros(self.num_models)
+        stde_E=np.zeros(self.num_models)
+        p25_E=np.zeros(self.num_models)
+        p75_E=np.zeros(self.num_models)
         
         for i in range(self.num_models):
             yr=int(yr_list[i])
@@ -765,18 +1153,37 @@ class ModelComparison:
             ksn=np.diff(sObj1.z)/np.diff(sObj1.chi)
             # Calculate erosion rate along profile         
             fts=cObj0.freq_to_save
-            Erate=(((eObj1.cum_E - eObj0.cum_E)*-1)/fts)*(10*100)*1000
+            # Erate=(((eObj1.cum_E - eObj0.cum_E)*-1)/fts)*(10*100)*1000
+        
+            # Modified erosion calculation
+            ts_slice=ts[-10:]
+            er=np.zeros((len(ts_slice),len(sObj1.x)))
+            for j in range(len(ts_slice)):
+                fname0=os.path.join(self.parent_directory,self.model_list[i],self.prefix_list[i]+str(ts_slice[j])+'.pkl')
+                [cObj0,sObj0,eObj0,rObj0]=self.recover_stim_state(fname0)
+                er[j,:]=eObj0.cum_E
+                
+            Erate=np.diff(er,axis=0)
+            Erate=((Erate*(-1))/fts)*(10*100)*1000
             
             # Calculate averages and std
             mn_ksn[i]=np.mean(ksn)
             std_ksn[i]=np.std(ksn)
+            stde_ksn[i]=np.std(ksn)/np.sqrt(ksn.size)
             mn_ksnqr[i]=np.mean(ksnqr)
             std_ksnqr[i]=np.std(ksnqr)
+            stde_ksnqr[i]=np.std(ksnqr)/np.sqrt(ksnqr.size)
             mn_ksnqp[i]=np.mean(ksnqp)
             std_ksnqp[i]=np.std(ksnqp)
+            stde_ksnqp[i]=np.std(ksnqp)/np.sqrt(ksnqp.size)
             mn_E[i]=np.mean(Erate)
             std_E[i]=np.std(Erate)
-        return mn_ksn,std_ksn,mn_ksnqr,std_ksnqr,mn_ksnqp,std_ksnqp,mn_E,std_E
+            stde_E[i]=np.std(Erate)/np.sqrt(Erate.size)
+            p25_E[i]=np.percentile(Erate,25)
+            p75_E[i]=np.percentile(Erate,75)
+
+
+        return mn_ksn,std_ksn,stde_ksn,mn_ksnqr,std_ksnqr,stde_ksnqr,mn_ksnqp,std_ksnqp,stde_ksnqp,mn_E,std_E,stde_E,p25_E,p75_E
     
     def rpv_final_ts(self,rp_slp,rp_yint):
         
@@ -791,6 +1198,7 @@ class ModelComparison:
         mnR=np.zeros(self.num_models)
         mnP=np.zeros(self.num_models)
         cr=np.zeros(self.num_models)
+        sr=np.zeros(self.num_models)
         
         for i in range(self.num_models):
             yr=int(yr_list[i])
@@ -810,8 +1218,9 @@ class ModelComparison:
             print('Performing monte-carlo for '+str(i+1)+' of '+str(self.num_models))
             mcd=rObj1.monte_carlo_runoff(sObj1,500,1,verbose=False)
             cr[i]=mcd['tail_fit_cr']
+            sr[i]=mcd['tail_fit_cr']
             
-        return mnR,mnP,cr
+        return mnR,mnP,cr,sr
     
     def theta_final_ts(self,rp_slp,rp_yint):
         # Build ts list
@@ -872,6 +1281,48 @@ class ModelComparison:
             theta_chip[i]=res.x 
 
         return theta_chi,theta_slp,theta_chir,theta_chip
+
+    def sf_final_ts(self):
+        # Build ts list
+        yr_list=[]
+        for i in range(self.num_models):
+            ts=self.sorted_time_steps(self.model_list[i],self.prefix_list[i])
+            yr_list.append(ts[-1])
+              
+        type_list=self.determine_type(yr_list)
+        
+        mn_snp=np.zeros(self.num_models)
+        min_snp=np.zeros(self.num_models)
+        max_snp=np.zeros(self.num_models)
+        std_snp=np.zeros(self.num_models)
+        
+        for i in range(self.num_models):
+            yr=int(yr_list[i])
+            ts=self.sorted_time_steps(self.model_list[i],self.prefix_list[i])
+            ix=np.argmin(np.abs(ts-yr))
+            
+            fname1=os.path.join(self.parent_directory,self.model_list[i],self.prefix_list[i]+str(ts[ix])+'.pkl')
+            if type_list[i]=='STIM':
+                [cObj1,sObj1,eObj1,rObj1]=self.recover_stim_state(fname1)
+            elif type_list[i]=='SPIM':
+                [cObj1,spObj1,sObj1,eObj1,rObj1]=self.recover_spim_state(fname1)
+                
+            try:
+                snp=rObj1.snp_bin
+                mn_snp[i]=np.mean(snp)
+                min_snp[i]=np.mean(snp)
+                max_snp[i]=np.max(snp)
+                std_snp[i]=np.std(snp)
+            except:
+                print('No snow fraction data')
+                mn_snp[i]=np.nan
+                min_snp[i]=np.nan
+                max_snp[i]=np.nan
+                std_snp[i]=np.nan
+                
+        return mn_snp,std_snp,min_snp,max_snp
+            
+
             
     def comp_final_ts(self,group_list,group_col,group_shape,group_filled,group_line,grp,rp_slp,rp_yint):
         # Build ts list

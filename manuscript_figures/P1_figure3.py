@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import glob
 import matplotlib.pyplot as plt
+from cmcrameri import cm
 
 def survive(ts):
     ts_sort=np.sort(ts)
@@ -97,6 +98,9 @@ df_route=pd.DataFrame(data={'STAID':staid,
 df_merge=pd.merge(df_route,df_hcdn,on='STAID',how='inner')  
 
 
+area=np.log10(df_merge['AREA']/1e6)
+
+
 SMALL_SIZE = 10
 MEDIUM_SIZE = 12
 BIGGER_SIZE = 14
@@ -112,8 +116,8 @@ f1=plt.figure(figsize=(8,8))
 f1.set_dpi(250)
 
 ax1=plt.subplot(2,2,1)
-plt.scatter(df_hcdn['R'],df_hcdn['SlicedMeanR'],c='w',marker='s',edgecolors='k',s=20,label='Unrouted')
-plt.scatter(df_merge['R_route'],df_merge['SlicedMeanR'],c='k',s=25,label='Routed')
+plt.scatter(df_hcdn['R'],df_hcdn['SlicedMeanR'],c='w',marker='s',edgecolors='k',s=15,label='Unrouted',zorder=0)
+plt.scatter(df_merge['R_route'],df_merge['SlicedMeanR'],c=area,s=20,edgecolors='k',label='Routed',zorder=1,vmin=1,vmax=4.5,cmap=cm.hawaii)
 
 x=np.linspace(0,10)
 plt.plot(x,x,c='k',linestyle='--',label='1:1 Reference Line')
@@ -129,8 +133,8 @@ ax1.text(0.01, 0.99, 'A',
         fontsize=12,fontweight='extra bold')
 
 ax2=plt.subplot(2,2,2)
-plt.scatter(df_hcdn['RC1'],df_hcdn['SlicedRC1'],c='w',marker='s',edgecolors='k',s=20,label='Unrouted')
-plt.scatter(df_merge['RC1_route'],df_merge['SlicedRC1'],c='k',s=25,label='Routed')
+plt.scatter(df_hcdn['RC1'],df_hcdn['SlicedRC1'],c='w',marker='s',edgecolors='k',s=15,label='Unrouted',zorder=0)
+plt.scatter(df_merge['RC1_route'],df_merge['SlicedRC1'],c=area,s=20,edgecolors='k',label='Routed',zorder=1,vmin=1,vmax=4.5,cmap=cm.hawaii)
 x=np.linspace(0,2.25)
 plt.plot(x,x,c='k',linestyle='--')
 plt.xlim((0,np.max(x)))
@@ -145,8 +149,8 @@ ax2.text(0.01, 0.99, 'B',
         fontsize=12,fontweight='extra bold')
 
 ax3=plt.subplot(2,2,3)
-plt.scatter(df_hcdn['SlicedMeanR']-df_hcdn['R'],df_hcdn['SlicedRC1']-df_hcdn['RC1'],c='w',marker='s',edgecolors='k',s=20,label='Unrouted')
-plt.scatter(df_merge['SlicedMeanR']-df_merge['R_route'],df_merge['SlicedRC1']-df_merge['RC1_route'],c='k',s=25,label='Routed')
+plt.scatter(df_hcdn['SlicedMeanR']-df_hcdn['R'],df_hcdn['SlicedRC1']-df_hcdn['RC1'],c='w',marker='s',edgecolors='k',s=15,label='Unrouted',zorder=0)
+plt.scatter(df_merge['SlicedMeanR']-df_merge['R_route'],df_merge['SlicedRC1']-df_merge['RC1_route'],c=area,s=20,edgecolors='k',label='Routed',zorder=1,vmin=1,vmax=4.5,cmap=cm.hawaii)
 plt.axvline(0,c='k',linestyle='--')
 plt.axhline(0,c='k',linestyle='--')
 plt.xlabel('Mean Runoff Residual (GII-WG3)')
@@ -159,11 +163,13 @@ ax3.text(0.01, 0.99, 'C',
         fontsize=12,fontweight='extra bold')
 
 ax4=plt.subplot(2,2,4)
-plt.scatter(df_hcdn['MAT'],df_hcdn['SlicedRC1']-df_hcdn['RC1'],c='w',marker='s',edgecolors='k',s=20,label='Unrouted')
-plt.scatter(df_merge['MAT'],df_merge['SlicedRC1']-df_merge['RC1_route'],c='k',s=25,label='Routed')
+plt.scatter(df_hcdn['MAT'],df_hcdn['SlicedRC1']-df_hcdn['RC1'],c='w',marker='s',edgecolors='k',s=20,label='Unrouted',zorder=0)
+sc4=plt.scatter(df_merge['MAT'],df_merge['SlicedRC1']-df_merge['RC1_route'],c=area,s=20,edgecolors='k',label='Routed',zorder=1,vmin=1,vmax=4.5,cmap=cm.hawaii)
 plt.axhline(0,c='k',linestyle='--')
-plt.xlabel('Mean Annual Temperature [C]')
+plt.xlabel('Mean Annual Temperature [$^\circ$C]')
 plt.ylabel('Shape Residual (GII-WG3)')
+cbar1=plt.colorbar(sc4,ax=ax4)
+cbar1.ax.set_ylabel('Log Drainage Area [km$^2$]')
 ax4.text(0.01, 0.99, 'D',
         horizontalalignment='left',
         verticalalignment='top',

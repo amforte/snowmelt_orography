@@ -43,13 +43,15 @@ bc_col='orange'
 df=pd.read_csv('model_final_stats.csv')
 dft=pd.read_csv('model_final_theta.csv')
 
-group_list=['gcu','gcl','gcu_10l','gcl_10l','au','al','bcu','bcl']
-mar_list=['o','s','o','s','o','s','o','s']
-len_list=[50,50,10,10,50,50,50,50]
-col_list=[gc_col,gc_col,gc_col,gc_col,alps_col,alps_col,bc_col,bc_col]
-label=['GC Unlinked','GC Linked','GC Unlinked 10 km','GC Linked 10 km',
-       'Alps Unlinked','Alps Linked','BC Unlinked','BC Linked']
-sty_list=['-','--',':','-.','-','--','-','--']
+group_list=['gcu','gcl','gcu_10l','gcl_10l','au','al','bcu','bcl'] #,'gcu_A','gcl_A']
+mar_list=['o','s','o','s','o','s','o','s'] #,'^','v']
+len_list=[50,50,10,10,50,50,50,50] #,50,50]
+col_list=[gc_col,gc_col,gc_col,gc_col,alps_col,alps_col,bc_col,bc_col] #,'gray','gray']
+label=['GC Unl.','GC L.','GC Unl. 10 km','GC L. 10 km',
+       'Alps Unl.','Alps L.','BC Unl.','BC L.'] #,'GC Unlinked Area','GC Linked Area']
+# label=['GC Unlinked','GC Linked','GC Unlinked 10 km','GC Linked 10 km',
+#        'Alps Unlinked','Alps Linked','BC Unlinked','BC Linked'] #,'GC Unlinked Area','GC Linked Area']
+sty_list=['-','--',':','-.','-','--','-','--'] #,'-','--']
 
 
 SMALL_SIZE = 8
@@ -66,26 +68,29 @@ plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 f1=plt.figure(figsize=(8,6.5))
 f1.set_dpi(250)
 
-gs1=gridspec.GridSpec(3,2)
+gs1=gridspec.GridSpec(4,2)
 
-ax1=f1.add_subplot(gs1[0:2,0])
+ax1=f1.add_subplot(gs1[0:3,0])
 ax1.set_xlabel('Erosion Rate [m/Myr]')
 ax1.set_ylabel(r'$k_{sn}$ [m]')
 ax1.set_xlim((-200,10200))
+ax1.set_ylim((-50,575))
 
-ax2=f1.add_subplot(gs1[0:2,1])
+
+ax2=f1.add_subplot(gs1[0:3,1])
 ax2.set_xlabel('Erosion Rate [m/Myr]')
 ax2.set_ylabel(r'$k_{snQ}$ [m]')
 ax2.set_xlim((-200,10200))
+ax2.set_ylim((-150,900))
 
-ax3=f1.add_subplot(gs1[2,0])
+ax3=f1.add_subplot(gs1[3,0])
 ax3.set_xlabel('Erosion Rate [m/Myr]')
 ax3.set_ylabel(r'$\theta$ : $\chi$ - z optimization')
 ax3.set_ylim((0.25,0.7))
 ax3.axhline(0.5,c='k',linestyle=':')
 ax3.set_xlim((-200,10200))
 
-ax4=f1.add_subplot(gs1[2,1])
+ax4=f1.add_subplot(gs1[3,1])
 ax4.set_xlabel('Erosion Rate [m/Myr]')
 ax4.set_ylabel(r'$\theta$ : $\chi_{Q}$  - z optimization')
 ax4.set_ylim((0.25,0.7))
@@ -97,24 +102,44 @@ f2.set_dpi(250)
 gs2=gridspec.GridSpec(2,2)
 
 ax5=f2.add_subplot(gs2[0,0])
-ax5.set_xlabel(r'$\Phi$ (1/n) : $k_{sn}$')
-ax5.set_ylabel('Shape Parameter')
-ax5.set_xlim((0.01,0.45))
+ax5.set_ylabel(r'$\Phi$ (1/n) : $k_{sn}$')
+ax5.set_xlabel(r'Shape Parameter $c_{R}$')
+ax5.set_ylim((0.01,0.35))
+ax5.set_xlim((0.45,2))
+t_a=np.arange(0.05,0.35,0.05)
+ax5.set_yticks(ticks=t_a,labels=np.round(t_a,2))
+
+ax5a=ax5.twinx()
+ax5a.set_ylim((0.01,0.35))
+ax5a.set_yticks(ticks=t_a,labels=np.round(1/t_a,1))
+ax5a.set_ylabel(r'n : $k_{sn}$')
+
 
 ax6=f2.add_subplot(gs2[0,1])
-ax6.set_xlabel(r'$\Phi$ (1/n) : $k_{snQ}$')
-ax6.set_ylabel('Shape Parameter')
-ax6.set_xlim((0.01,0.45))
+ax6.set_ylabel(r'$\Phi$ (1/n) : $k_{snQ}$')
+ax6.set_xlabel(r'Shape Parameter $c_{R}$')
+ax6.set_ylim((0.01,0.35))
+ax6.set_xlim((0.45,2))
+t_a=np.arange(0.05,0.35,0.05)
+ax6.set_yticks(ticks=t_a,labels=np.round(t_a,2))
+
+ax6a=ax6.twinx()
+ax6a.set_ylim((0.01,0.35))
+ax6a.set_yticks(ticks=t_a,labels=np.round(1/t_a,1))
+ax6a.set_ylabel(r'n : $k_{snQ}$')
+
 
 ax7=f2.add_subplot(gs2[1,0])
 ax7.set_xlabel(r'$K$')
 ax7.set_ylabel('Runoff [mm/day]')
 ax7.set_xscale('log')
+ax7.set_ylim((1,8))
 
 ax8=f2.add_subplot(gs2[1,1])
 ax8.set_xlabel(r'$K_{lp}$')
 ax8.set_ylabel('Runoff [mm/day]')
 ax8.set_xscale('log')
+ax8.set_ylim((1,8))
 
 
 
@@ -129,6 +154,10 @@ crlist=[]
 mrslist=[]
 crslist=[]
 
+theta_list=[]
+thetap_list=[]
+
+
 for i in range(len(group_list)):
     idx=df['Group']==group_list[i]
     
@@ -136,12 +165,19 @@ for i in range(len(group_list)):
     E=df.loc[idx,'mn_E'].to_numpy()/1e6
     ksnqp=df.loc[idx,'mn_ksnqp'].to_numpy()
     
-    ksns=df.loc[idx,'std_ksn'].to_numpy()
-    Es=df.loc[idx,'std_E'].to_numpy()
-    ksnqps=df.loc[idx,'std_ksnqp'].to_numpy()
+    # ksns=df.loc[idx,'std_ksn'].to_numpy()
+    # Es=df.loc[idx,'std_E'].to_numpy()
+    # ksnqps=df.loc[idx,'std_ksnqp'].to_numpy()
+    
+    ksns=df.loc[idx,'stde_ksn'].to_numpy()
+    Es=df.loc[idx,'stde_E'].to_numpy()
+    ksnqps=df.loc[idx,'stde_ksnqp'].to_numpy()
     
     theta=dft.loc[idx,'theta_chi'].to_numpy()
     thetap=dft.loc[idx,'theta_chi_p'].to_numpy()
+    
+    theta_list.append(theta)
+    thetap_list.append(thetap)
 
     # Fit
     [K,n]=odr_fit(ksn,E)
@@ -166,15 +202,22 @@ for i in range(len(group_list)):
     if len_list[i]==50:
         ax1.scatter(E*1e6,ksn,c=col_list[i],marker=mar_list[i],zorder=2,label=label[i]+'; n = '+str(np.round(n,1)))
         ax2.scatter(E*1e6,ksnqp,c=col_list[i],marker=mar_list[i],zorder=2,label=label[i]+'; n = '+str(np.round(nlp,1)))
-        if mar_list[i]=='o':
-            ax5.scatter(1/n,np.mean(cr),c=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
-        else:
-            ax5.scatter(1/n,np.mean(cr),c=col_list[i],marker=mar_list[i],zorder=1)
+        
+        ax5.scatter(np.mean(cr),1/n,c=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
+        ax6.scatter(np.mean(cr),1/nlp,c=col_list[i],marker=mar_list[i],zorder=1)
+        # if mar_list[i]=='o':
+        #     ax5.scatter(1/n,np.mean(cr),c=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
+        # elif mar_list[i]=='^':
+        #     ax5.scatter(1/n,np.mean(cr),c=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
+        # else:
+        #     ax5.scatter(1/n,np.mean(cr),c=col_list[i],marker=mar_list[i],zorder=1)
             
-        if mar_list[i]=='s':
-            ax6.scatter(1/nlp,np.mean(cr),c=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
-        else:
-            ax6.scatter(1/nlp,np.mean(cr),c=col_list[i],marker=mar_list[i],zorder=1)            
+        # if mar_list[i]=='s':
+        #     ax6.scatter(1/nlp,np.mean(cr),c=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
+        # elif mar_list[i]=='v':
+        #     ax6.scatter(1/nlp,np.mean(cr),c=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
+        # else:
+        #     ax6.scatter(1/nlp,np.mean(cr),c=col_list[i],marker=mar_list[i],zorder=1)            
         ax7.scatter(K,np.mean(mn_R),c=col_list[i],marker=mar_list[i],zorder=1)
         ax8.scatter(Klp,np.mean(mn_R),c=col_list[i],marker=mar_list[i],zorder=1)
         ax3.scatter(E*1e6,theta,c=col_list[i],marker=mar_list[i],zorder=1)
@@ -182,14 +225,18 @@ for i in range(len(group_list)):
     else:
         ax1.scatter(E*1e6,ksn,c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=2,label=label[i]+'; n = '+str(np.round(n,1)))
         ax2.scatter(E*1e6,ksnqp,c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=2,label=label[i]+'; n = '+str(np.round(nlp,1)))
-        if mar_list[i]=='o':
-            ax5.scatter(1/n,np.mean(cr),c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
-        else:
-            ax5.scatter(1/n,np.mean(cr),c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1) 
-        if mar_list[i]=='s':
-            ax6.scatter(1/nlp,np.mean(cr),c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
-        else:
-            ax6.scatter(1/nlp,np.mean(cr),c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1)            
+        ax5.scatter(np.mean(cr),1/n,c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
+        ax6.scatter(np.mean(cr),1/nlp,c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1)
+        
+    
+        # if mar_list[i]=='o':
+        #     ax5.scatter(1/n,np.mean(cr),c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
+        # else:
+        #     ax5.scatter(1/n,np.mean(cr),c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1) 
+        # if mar_list[i]=='s':
+        #     ax6.scatter(1/nlp,np.mean(cr),c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1,label=label[i])
+        # else:
+        #     ax6.scatter(1/nlp,np.mean(cr),c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1)            
         ax7.scatter(K,np.mean(mn_R),c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1)
         ax8.scatter(Klp,np.mean(mn_R),c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1)
         ax3.scatter(E*1e6,theta,c='w',edgecolor=col_list[i],marker=mar_list[i],zorder=1)
@@ -200,10 +247,33 @@ for i in range(len(group_list)):
     
     ax1.errorbar(E*1e6,ksn,ksns,Es,ecolor=col_list[i],linestyle='',zorder=0,elinewidth=0.5)
     ax2.errorbar(E*1e6,ksnqp,ksnqps,Es,ecolor=col_list[i],linestyle='',zorder=0,elinewidth=0.5)
-    ax5.errorbar(1/n,np.mean(cr),np.std(cr),ecolor=col_list[i],linestyle='',zorder=0,elinewidth=0.5)
-    ax6.errorbar(1/nlp,np.mean(cr),np.std(cr),ecolor=col_list[i],linestyle='',zorder=0,elinewidth=0.5)
+    
+    ax5.errorbar(np.mean(cr),1/n,xerr=np.std(cr),ecolor=col_list[i],linestyle='',zorder=0,elinewidth=0.5)
+    ax6.errorbar(np.mean(cr),1/nlp,xerr=np.std(cr),ecolor=col_list[i],linestyle='',zorder=0,elinewidth=0.5)
+    
     ax7.errorbar(K,np.mean(mn_R),np.std(mn_R),ecolor=col_list[i],linestyle='',zorder=0,elinewidth=0.5)
     ax8.errorbar(Klp,np.mean(mn_R),np.std(mn_R),ecolor=col_list[i],linestyle='',zorder=0,elinewidth=0.5)
+
+ax1.set_xscale('log')
+ax1.set_yscale('log')
+ax1.set_xlim((200,10000))
+ax1.set_ylim((100,500))
+ax1.set_xticks(ticks=np.array([250,500,1000,2000,4000,8000]),labels=['250','500','1000','2000','4000','8000'])
+ax1.set_yticks(ticks=np.array([100,200,300,400,500]),labels=['100','200','300','400','500'])
+ax2.set_xscale('log')
+ax2.set_yscale('log')
+ax2.set_xlim((200,10000))
+ax2.set_ylim((100,700))
+ax2.set_xticks(ticks=np.array([250,500,1000,2000,4000,8000]),labels=['250','500','1000','2000','4000','8000'])
+ax2.set_yticks(ticks=np.array([100,200,300,400,500,600,700]),labels=['100','200','300','400','500','600','700'])
+ax3.set_xscale('log')
+ax3.set_xlim((200,10000))
+ax3.set_xticks(ticks=np.array([250,500,1000,2000,4000,8000]),labels=['250','500','1000','2000','4000','8000'])
+ax4.set_xscale('log')
+ax4.set_xlim((200,10000))
+ax4.set_xticks(ticks=np.array([250,500,1000,2000,4000,8000]),labels=['250','500','1000','2000','4000','8000'])
+
+
 
 # Convert lists to numpy
 Klist=np.array(Klist)
@@ -218,30 +288,46 @@ crslist=np.array(crlist)
 # Fit
 linmod=odr.Model(linear)
 phi_vec=np.linspace(0.05,0.45,100)
-k_vec=np.logspace(-41,-11,100)
-klp_vec=np.logspace(-29,-8,100)
+cr_vec=np.linspace(0.45,2)
+k_vec=np.logspace(-46,-11,100)
+klp_vec=np.logspace(-32,-8,100)
+
+# k = 5.64 * cR
+
+# Predict k+1 from eq 38 from Lague 2005
+omega_s=0.25
+alfa=2/3
+bta=2/3
+k_plus_1=(alfa*(1-omega_s))/(bta*phi_vec)
+a=1.5
+
+# Convert from k+1 to cR using Rossi 2016 Figure 4
+cR_predict=k_plus_1/5.64
+
 
 # phi-cR
-phicr=odr.RealData(philist,crlist,sx=crslist)
+phicr=odr.RealData(crlist,philist,sx=crslist)
 odrphicr=odr.ODR(phicr,linmod,beta0=[0.1,10])
 outphicr=odrphicr.run()
 phicr_slp=outphicr.beta[0]
 phicr_yint=outphicr.beta[1]
-ax5.plot(phi_vec,phicr_slp*phi_vec+phicr_yint,c='k',linestyle=':',zorder=0)
-ax5.set_ylim((0.45,1.80))
-eqstr=r'$c_{r}$ = '+str(np.round(phicr_slp,3))+r' * $\Phi$ + '+str(np.round(phicr_yint,3))
-ax5.text(0.25,1,eqstr)
+ax5.plot(cr_vec,phicr_slp*cr_vec+phicr_yint,c='k',linestyle='-',zorder=0)
+ax5.plot(cR_predict,phi_vec,c='k',linestyle='--',zorder=0)
+eqstr=r'$\Phi$ = '+str(np.round(phicr_slp,3))+r' * $c_{R}$ + '+str(np.round(phicr_yint,3))
+ax5.text(0.5,0.05,eqstr,fontsize=9)
+ax5.text(0.5,0.1,r'$\Phi = \frac{\alpha(1-\omega_{s})}{\beta(c_{R}*5.64)}$',fontsize=9)
+
 
 #philp-cR
-philpcr=odr.RealData(philplist,crlist,sx=crslist)
+philpcr=odr.RealData(crlist,philplist,sx=crslist)
 odrphilpcr=odr.ODR(philpcr,linmod,beta0=[0.1,10])
 outphilpcr=odrphilpcr.run()
 philpcr_slp=outphilpcr.beta[0]
 philpcr_yint=outphilpcr.beta[1]
-ax6.plot(phi_vec,philpcr_slp*phi_vec+philpcr_yint,c='k',linestyle=':',zorder=0)
-ax6.set_ylim((0.45,1.80))
-eqstr=r'$c_{r}$ = '+str(np.round(philpcr_slp,3))+r' * $\Phi$ + '+str(np.round(philpcr_yint,3))
-ax6.text(0.075,0.75,eqstr)
+ax6.plot(cr_vec,philpcr_slp*cr_vec+philpcr_yint,c='k',linestyle='-',zorder=0)
+eqstr=r'$\Phi$ = '+str(np.round(philpcr_slp,3))+r' * $c_{R}$ + '+str(np.round(philpcr_yint,3))
+ax6.text(0.5,0.05,eqstr,fontsize=10)
+
 
 # K-R
 kr=odr.RealData(np.log10(Klist),mrlist,sx=mrslist)
@@ -249,10 +335,9 @@ odrkr=odr.ODR(kr,linmod,beta0=[0.1,10])
 outkr=odrkr.run()
 kr_slp=outkr.beta[0]
 kr_yint=outkr.beta[1]
-ax7.plot(k_vec,kr_slp*np.log10(k_vec)+kr_yint,c='k',linestyle=':',zorder=0)
-ax7.set_ylim((1,8.25))
+ax7.plot(k_vec,kr_slp*np.log10(k_vec)+kr_yint,c='k',linestyle='-',zorder=0)
 eqstr=r'$\bar{R}$ = '+str(np.round(kr_slp,3))+r' * log($K$) + '+str(np.round(kr_yint,3))
-ax7.text(10**-39,2,eqstr)
+ax7.text(10**-42,2,eqstr)
 
 # Klp-R
 klpr=odr.RealData(np.log10(Klplist),mrlist,sx=mrslist)
@@ -260,16 +345,15 @@ odrklpr=odr.ODR(klpr,linmod,beta0=[0.1,10])
 outklpr=odrklpr.run()
 klpr_slp=outklpr.beta[0]
 klpr_yint=outklpr.beta[1]
-ax8.plot(klp_vec,klpr_slp*np.log10(klp_vec)+klpr_yint,c='k',linestyle=':',zorder=0)
-ax8.set_ylim((1,8.25)) 
+ax8.plot(klp_vec,klpr_slp*np.log10(klp_vec)+klpr_yint,c='k',linestyle='-',zorder=0)
 eqstr=r'$\bar{R}$ = '+str(np.round(klpr_slp,3))+r' * log($K_{lp}$) + '+str(np.round(klpr_yint,3)) 
-ax8.text(10**-26,2,eqstr)
+ax8.text(10**-30,2,eqstr)
   
     
 ax1.legend(loc='best')
 ax2.legend(loc='best')
-ax5.legend(loc='best')
-ax6.legend(loc='best')
+ax5.legend(loc='best',ncol=2)
+# ax6.legend(loc='best',ncol=2)
 ax1.text(0.01, 0.99, 'A',
         horizontalalignment='left',
         verticalalignment='top',
@@ -296,7 +380,7 @@ ax5.text(0.01, 0.99, 'A',
         verticalalignment='top',
         transform=ax5.transAxes,
         fontsize=12,fontweight='extra bold')
-ax6.text(0.01, 0.99, 'B',
+ax6.text(0.95, 0.99, 'B',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax6.transAxes,

@@ -1,163 +1,127 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jan 17 09:56:06 2023
+Created on Sun Dec 17 14:10:43 2023
 
 @author: aforte
 """
 
-import sys
-sys.path.insert(0,'/Users/aforte/Documents/GitHub/snowmelt_orography')
-import stimpy as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from cmcrameri import cm
+from scipy.stats import linregress
+from matplotlib import colors
 from scipy import odr
+import rasterio
+import matplotlib.gridspec as gridspec
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from scipy import optimize
+from scipy.special import gamma
+
 
 def linear(B,x):
     return B[0]*x + B[1]
 
+def rmsef(observed,predicted):
+    return np.sqrt(np.sum((predicted-observed)**2)/len(predicted))
+
 def odr_fit_ref(x,y):
     # Filter 0 values
-    lx=x[(x>0) & (y>0)]
-    ly=y[(x>0) & (y>0)]
+    lx=np.log10(x[(x>0) & (y>0)])
+    ly=np.log10(y[(x>0) & (y>0)])
     linmod=odr.Model(linear)
+    
+    fd=odr.Data(x,y)
+    odrlin=odr.ODR(fd,linmod,beta0=[0.1,0.1])
+    outlin=odrlin.run()
+    slp=outlin.beta[0]
+    yint=outlin.beta[1]
+    lin_pred=slp*x+yint
+    lin_rmse=rmsef(y,lin_pred)
+    lin_chi2=outlin.res_var
+    lin_sd=outlin.sd_beta
     
     fdlog=odr.Data(lx,ly)
     odrlog=odr.ODR(fdlog,linmod,beta0=[0.1,10])
     outlog=odrlog.run()
-    slp=outlog.beta[0]
-    yint=outlog.beta[1]
+    logexp=outlog.beta[0]
+    logcoeff=10**outlog.beta[1]
+    nlog_pred=logcoeff*x**logexp
+    log_rmse=rmsef(y,nlog_pred)
+    log_chi2=outlog.res_var
+    log_sd=outlog.sd_beta
 
-    return slp,yint
+    return slp,yint,lin_sd,lin_rmse,lin_chi2,logcoeff,logexp,log_sd,log_rmse,log_chi2 
 
-def plot_and_fit_ref(axn,dfs,bl,br,bb,bt,col,lbl_left):
-    spidx=(dfs['latitude']>=bb) & (dfs['latitude']<=bt) & (dfs['longitude']>=bl) & (dfs['longitude']<=br)
+# master_location='/Volumes/Choruh/Data/snowmelt_project/'
+master_location='/Users/aforte/Documents/Python/snowmelt/'
+repo_location='/Users/aforte/Documents/GitHub/snowmelt-tectonics/stimpy/'
 
-    max_r=12
-    max_p=12
-    
-    r=np.linspace(1,max_r,100)
-    
-    x=dfs.loc[spidx,'mean_runoff'].to_numpy()
-    y=dfs.loc[spidx,'mean_precip'].to_numpy()
-    s,yi=odr_fit_ref(x,y)
-    bin_edges=np.histogram_bin_edges(dfs.loc[spidx,'mean_precip'],'doane')
-    bix=np.digitize(dfs.loc[spidx,'mean_precip'],bin_edges)
-    for i in range(len(bin_edges)-1):
-        mx=np.mean(x[bix==i])
-        stdx=np.std(x[bix==i])
-        my=np.mean(y[bix==i])
-        stdy=np.std(y[bix==i])
-        axn.scatter(x,y,c=col,s=1,zorder=1,alpha=0.25)
-        axn.scatter(mx,my,c=col,s=len(x[bix==i]),zorder=2)
-        axn.errorbar(mx,my,xerr=stdx,yerr=stdy,ecolor=col,elinewidth=0.5,zorder=1)
-    axn.plot([0,max_r],[0,max_p],c='gray',linestyle=':',zorder=0)
-    axn.plot(r,s*r+yi,c=col,label='Mean Runoff to Mean Precip')  
-    axn.set_xlabel('Mean Runoff [m]')
-    if lbl_left:
-        axn.set_ylabel('Mean Precip [mm/day]')
-    axn.set_xlim((0,max_r))
-    axn.set_ylim((0,max_p))
-    return s,yi
-
-
-
-
-# 
-# Greater Caucasus
-bl1=38
-br1=51
-bb1=39.5
-bt1=45
-gc_col='black'
-
-## Determine runoff to precip relationships
 ## Load global
-df_global=pd.read_csv('/Volumes/Choruh/Data/snowmelt_project/wrr2_derived_data_v3.csv')
+df_global=pd.read_csv(master_location+'wrr2_derived_data_v4.csv')
 df_global=df_global.drop(index=df_global.index[np.isnan(df_global['mean_z'])])
 df_global=df_global.reset_index(drop=True)
+
 # Calc percents
+
 global_perc_base=df_global['qsb']/df_global['mean_runoff']
+
 # Calculate indices
 grlf=df_global['max_z']-df_global['min_z']
+
+# Set color
+temp_cutoff=2
+vmin=temp_cutoff-34
+vmax=temp_cutoff+34
+
 # Set cutoffs
+perc_cutoff=0.275
 percb_cutoff=0.25
-# Index
-rem_idx=(grlf<=500) | (df_global['mean_z']<=250) | (global_perc_base>percb_cutoff) | (df_global['mean_rlf']<250)
+
+
+rem_idx=(grlf<=500) | (df_global['mean_z']<=250) | (global_perc_base>percb_cutoff) | (df_global['mean_rlf25']<250)
 df_global_s=df_global.drop(df_global.index[rem_idx])
 df_global_s=df_global_s.reset_index(drop=True)
+global_perc_snow=df_global_s['qsm']/df_global_s['mean_runoff']
+s_f=df_global_s['mean_runoff']/gamma(1+1/df_global_s['r_c1'])
+# Set cnorms
+cnorm=colors.Normalize(vmin=vmin,vmax=vmax)
 
-f1=plt.figure(figsize=(8,2.5))
-f1.set_dpi(250)
-ax1=plt.subplot(1,3,1)
+# Set vector
+r=np.linspace(0.1,25,100)
 
-[gcs,gcyi]=plot_and_fit_ref(ax1,df_global_s,bl1,br1,bb1,bt1,gc_col,False)
+# Define model
+linmod=odr.Model(linear)
 
-master_location='/Volumes/Choruh/Data/snowmelt_project/model_outputs/'
+## Calculate singular rainfall dominated relationship between mean runoff and cR
+gidx=(global_perc_snow<=0.35) & (df_global_s['r_c1']>0)
 
-model_list1=['gc025u','gc05u','gc1u','gc2u','gc4u','gc8u',
-            'gc025l','gc05l','gc1l','gc2l','gc4l','gc8l']
+param1=[]
+param2=[]
+r_type=[]
+rel=[]
 
-prefix_list1=['ts_','ts_','ts_','ts_','ts_','ts_','ts_','ts_','ts_','ts_','ts_','ts_']
+RFcr=odr.Data(np.log10(df_global_s.loc[gidx,'mean_runoff']),np.log10(df_global_s.loc[gidx,'r_c1']))
+RFcr_odr=odr.ODR(RFcr,linmod,beta0=[0.1,10])
+RFcr_outlog=RFcr_odr.run()
+RFcr_logexp=RFcr_outlog.beta[0]
+RFcr_logcoeff=10**RFcr_outlog.beta[1]
+param1.append(RFcr_logcoeff)
+param2.append(RFcr_logexp)
+r_type.append('power')
+rel.append('rbar_to_cR')
 
-descript_list1=['GC STIM Unlinked; 0.25 mm/yr','GC STIM Unlinked; 0.5 mm/yr','GC STIM Unlinked; 1 mm/yr',
-               'GC STIM Unlinked; 2 mm/yr','GC STIM Unlinked; 4 mm/yr','GC STIM Unlinked; 8 mm/yr',
-               'GC STIM Linked; 0.25 mm/yr','GC STIM Linked; 0.5 mm/yr','GC STIM Linked; 1 mm/yr',
-               'GC STIM Linked; 2 mm/yr','GC STIM Linked; 4 mm/yr','GC STIM Linked; 8 mm/yr']
-
-group_list1=['GC Unlinked','GC Unlinked','GC Unlinked','GC Unlinked','GC Unlinked','GC Unlinked',
-             'GC Linked','GC Linked','GC Linked','GC Linked','GC Linked','GC Linked']
-
-
-model_list2=['gc025u_10l','gc05u_10l','gc1u_10l','gc2u_10l','gc4u_10l','gc8u_10l']
-prefix_list2=['ts_','ts_','ts_','ts_','ts_','ts_']
-descript_list2=['GC STIM Unlinked; 0.25 mm/yr','GC STIM Unlinked; 0.5 mm/yr','GC STIM Unlinked; 1 mm/yr',
-               'GC STIM Unlinked; 2 mm/yr','GC STIM Unlinked; 4 mm/yr','GC STIM Unlinked; 8 mm/yr']
-group_list2=['GC Unlinked 10 km','GC Unlinked 10 km','GC Unlinked 10 km',
-             'GC Unlinked 10 km','GC Unlinked 10 km','GC Unlinked 10 km']
-
-
-model_list3=['gc025l_10l','gc05l_10l','gc1l_10l','gc2l_10l','gc4l_10l','gc8l_10l']
-prefix_list3=['ts_','ts_','ts_','ts_','ts_','ts_']
-descript_list3=['GC STIM Linked; 0.25 mm/yr','GC STIM Linked; 0.5 mm/yr','GC STIM Linked; 1 mm/yr',
-               'GC STIM Linked; 2 mm/yr','GC STIM Linked; 4 mm/yr','GC STIM Linked; 8 mm/yr']
-group_list3=['GC Linked 10 km','GC Linked 10 km','GC Linked 10 km',
-             'GC Linked 10 km','GC Linked 10 km','GC Linked 10 km']
-
-model_list=model_list1+model_list2+model_list3
-prefix_list=prefix_list1+prefix_list2+prefix_list3
-descript_list=descript_list1+descript_list2+descript_list3
-group_list=group_list1+group_list2 +group_list3
-
-mc=st.ModelComparison(master_location,model_list,prefix_list,descript_list)
-
-col_list=['black','black','gray','gray']
-shape_list=['o','s','o','s']
-shape_filled_list=['filled','open','filled','open']
-line_list=['-','--','-','--']
-grp=['GC Unlinked','GC Linked','GC Unlinked 10 km','GC Linked 10 km']
-
-
-rp_slp1=[]
-rp_yint1=[]
-for i in range(len(model_list1)):
-    rp_slp1.append(gcs)
-    rp_yint1.append(gcyi)
-rp_slp2=[]
-rp_yint2=[]
-for i in range(len(model_list2)):
-    rp_slp2.append(gcs)
-    rp_yint2.append(gcyi)
-rp_slp3=[]
-rp_yint3=[]
-for i in range(len(model_list3)):
-    rp_slp3.append(gcs)
-    rp_yint3.append(gcyi)
-rp_slp=rp_slp1+rp_slp2+rp_slp3
-rp_yint=rp_yint1+rp_yint2+rp_yint3
-[fit_df,_,_]=mc.comp_final_ts(group_list,col_list,shape_list,shape_filled_list,line_list,grp,rp_slp,rp_yint)
+RFsr=odr.Data(s_f[gidx],df_global_s.loc[gidx,'r_s1'])
+RFsr_odr=odr.ODR(RFsr,linmod,beta0=[0.1,10])
+RFsr_out=RFsr_odr.run()
+RFsr_m=RFsr_out.beta[0]
+RFsr_b=RFsr_out.beta[1]
+param1.append(RFsr_m)
+param2.append(RFsr_b)
+r_type.append('linear')
+rel.append('sRm_to_sRf')
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
@@ -170,33 +134,45 @@ plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
 plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
-# Generate supplemental figure
-f1=plt.figure(figsize=(8,4))
-f1.set_dpi(250)
-e_vec=np.logspace(1,4,100)
-gc_ero=pd.read_csv('/Users/aforte/Documents/GitHub/Caucasus_Erosion/data_tables/gc_ero_master_table.csv')
+f1=plt.figure(1,figsize=(6,3.5),layout='constrained',dpi=300)
+xb=np.linspace(0,10,50)
+yb=np.linspace(0,1.5,50)
 
-mn_ksn=gc_ero['mean_ksn'].to_numpy()
-se_ksn=gc_ero['se_ksn'].to_numpy()
-mn_E=gc_ero['St_E_rate_m_Myr'].to_numpy()
-se_E=gc_ero['St_Ext_Unc'].to_numpy()
-da=gc_ero['drainage_area'].to_numpy()
+lab1=r'$c_{R}$ = '+str(np.round(RFcr_logcoeff,2))+r'$\bar{R}$ $^{'+str(np.round(RFcr_logexp,2))+'}$'
+lab2=r'$X_{0f}$ = '+str(np.round(RFsr_m,2))+r'$X_{0m}$ + '+str(np.round(RFsr_b,2))
 
-sc1=plt.scatter(mn_E,mn_ksn,s=30,c=np.log10(da),label='Observed Erosion Rates',zorder=1,cmap=cm.lajolla,edgecolors='k')
-plt.errorbar(mn_E,mn_ksn,se_ksn,se_E,ecolor='gray',linestyle='',zorder=0,elinewidth=0.5)
-plt.plot(e_vec,fit_df.loc[0,'C']*(e_vec/1e6)**fit_df.loc[0,'phi'],c='k',label=r'Unlinked 50 km (LogDA = 2.69 $km^{2}$)')
-plt.plot(e_vec,fit_df.loc[1,'C']*(e_vec/1e6)**fit_df.loc[1,'phi'],c='k',linestyle='--',label=r'Linked 50 km (LogDA = 2.69 $km^{2}$)')
-plt.plot(e_vec,fit_df.loc[2,'C']*(e_vec/1e6)**fit_df.loc[2,'phi'],c='gray',linestyle='-',label=r'Unlinked 10 km (LogDA = 1.41 $km^{2}$)')
-plt.plot(e_vec,fit_df.loc[3,'C']*(e_vec/1e6)**fit_df.loc[3,'phi'],c='gray',linestyle='--',label=r'Linked 10 km (LogDA = 1.41 $km^{2}$)')
-plt.xlabel('Erosion Rate [m/Myr]')
-plt.ylabel(r'$k_{sn}$ [m]')
-plt.legend(bbox_to_anchor= (1.3,0.99),loc='upper left')
-plt.xscale('log')
-ax1=plt.gca()
-cbar1=plt.colorbar(sc1,ax=ax1)
-cbar1.ax.set_ylabel(r'Log Drainage Area [$km^{2}$]')
+ax1=plt.subplot(1,2,1)
+sc1=plt.hist2d(df_global_s.loc[gidx,'mean_runoff'],df_global_s.loc[gidx,'r_c1'],[xb,yb],norm=colors.LogNorm(vmin=1,vmax=500),cmap=cm.lajolla)
+cbar1=plt.colorbar(sc1[3],ax=ax1)
+cbar1.ax.set_ylabel('Density')
+plt.plot(r,RFcr_logcoeff*r**RFcr_logexp,c='k',linewidth=2,label=lab1)
+plt.xlabel('WaterGAP3 Runoff [mm/day]')
+plt.ylabel('WaterGAP3 Shape Parameter')
+plt.xlim((0,10))
+plt.ylim((0,1.5))
+plt.legend(loc='lower left',bbox_to_anchor=[0.1,-0.3])
+ax1.text(0.01, 0.99, 'A',
+        horizontalalignment='left',
+        verticalalignment='top',
+        transform=ax1.transAxes,
+        fontsize=12,fontweight='extra bold')
 
-plt.tight_layout()
+ax2=plt.subplot(1,2,2)
+sc1=plt.hist2d(s_f[gidx],df_global_s.loc[gidx,'r_s1'],[xb,xb],norm=colors.LogNorm(vmin=1,vmax=500),cmap=cm.berlin)
+cbar1=plt.colorbar(sc1[3],ax=ax2)
+cbar1.ax.set_ylabel('Density')
+plt.plot(r,RFsr_m*r + RFsr_b,c='k',linewidth=2,label=lab2)
+plt.xlabel('Scale Estimated from WaterGAP3 Mean')
+plt.ylabel('WaterGAP3 Scale Parameter')
+plt.xlim((0,10))
+plt.ylim((0,10))
+plt.legend(loc='lower left',bbox_to_anchor=[0.1,-0.3])
+ax2.text(0.01, 0.99, 'B',
+        horizontalalignment='left',
+        verticalalignment='top',
+        transform=ax2.transAxes,
+        fontsize=12,fontweight='extra bold')
+
 plt.rcdefaults()
 
-f1.savefig('P2_SUP_figureS7.pdf',dpi='figure')
+f1.savefig('P2_SUP_figureS7.pdf')

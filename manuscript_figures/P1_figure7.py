@@ -75,7 +75,7 @@ def bin2d_corr(fn,dfs,x,y,x1,y1,min_num,p_sig,corr_type,bin_type='doane'):
 # master_location='/Volumes/Choruh/Data/snowmelt_project/'
 master_location='/Users/aforte/Documents/Python/snowmelt/'
 
-df_global=pd.read_csv(master_location+'wrr2_derived_data_v3.csv')
+df_global=pd.read_csv(master_location+'wrr2_derived_data_v4.csv')
 df_global=df_global.drop(index=df_global.index[np.isnan(df_global['mean_z'])])
 df_global=df_global.reset_index(drop=True)
 
@@ -88,7 +88,7 @@ df_global_s=df_global.drop(df_global.index[rem_idx])
 df_global_s=df_global_s.reset_index(drop=True)
 
 [RHO1a,NUM1a,BN1a,X1a,P1a,xbin1a,ybin1a]=bin2d_corr(1,df_global_s,df_global_s['mean_precip'],
-                                            df_global_s['mat'],df_global_s['mean_rlf'],df_global_s['mean_runoff'],10,0.01,'spearman')
+                                            df_global_s['mat'],df_global_s['mean_rlf25'],df_global_s['mean_runoff'],10,0.01,'spearman')
 
 [RHO1b,NUM1b,BN1b,X1b,P1b,xbin1b,ybin1b]=bin2d_corr(1,df_global_s,df_global_s['mean_precip'],
                                             df_global_s['mat'],df_global_s['mean_z'],df_global_s['mean_runoff'],10,0.01,'spearman')
@@ -103,7 +103,7 @@ df_global_s=df_global_s.reset_index(drop=True)
                                             df_global_s['mat'],df_global_s['mean_z'],df_global_s['qsm']/df_global_s['mean_runoff'],10,0.01,'spearman')
 
 [RHO2c,NUM2c,BN2c,X2c,P2c,xbin2c,ybin2c]=bin2d_corr(2,df_global_s,df_global_s['mean_precip'],
-                                            df_global_s['mat'],df_global_s['mean_rlf'],df_global_s['qsm']/df_global_s['mean_runoff'],10,0.01,'spearman')
+                                            df_global_s['mat'],df_global_s['mean_rlf25'],df_global_s['qsm']/df_global_s['mean_runoff'],10,0.01,'spearman')
 
 SMALL_SIZE = 8
 MEDIUM_SIZE = 10
@@ -134,7 +134,7 @@ cbar1.ax.set_ylabel('Density')
 plt.xlim((np.min(xbin1a),np.max(xbin1a)))
 plt.ylim((np.min(ybin1a),np.max(ybin1a)))
 plt.xlabel('Mean Precip [mm/day]')
-plt.ylabel('MAT [C]')
+plt.ylabel('MAT [$^\circ$C]')
 ax1.text(0.90, 0.99, 'A',
         horizontalalignment='left',
         verticalalignment='top',
@@ -151,7 +151,7 @@ plt.imshow(P1a,origin='lower',
                 extent=[np.min(xbin1a),np.max(xbin1a),np.min(ybin1a),np.max(ybin1a)],
                 cmap=cm.grayC,norm=colors.Normalize(vmin=0,vmax=1),aspect='auto')
 plt.xlabel('Mean Precip [mm/day]')
-plt.ylabel('MAT [C]')
+plt.ylabel('MAT [$^\circ$C]')
 ax2.text(0.90, 0.99, 'B',
         horizontalalignment='left',
         verticalalignment='top',
@@ -168,7 +168,7 @@ plt.imshow(P2a,origin='lower',
                 extent=[np.min(xbin2a),np.max(xbin2a),np.min(ybin2a),np.max(ybin2a)],
                 cmap=cm.grayC,norm=colors.Normalize(vmin=0,vmax=1),aspect='auto')
 plt.xlabel('Mean Precip [mm/day]')
-plt.ylabel('MAT [C]')
+plt.ylabel('MAT [$^\circ$C]')
 ax3.text(0.90, 0.99, 'C',
         horizontalalignment='left',
         verticalalignment='top',
@@ -192,7 +192,7 @@ plt.imshow(P1b,origin='lower',
                 extent=[np.min(xbin1b),np.max(xbin1b),np.min(ybin1b),np.max(ybin1b)],
                 cmap=cm.grayC,norm=colors.Normalize(vmin=0,vmax=1),aspect='auto')
 # plt.xlabel('Mean Precip [mm/day]')
-plt.ylabel('MAT [C]')
+plt.ylabel('MAT [$^\circ$C]')
 ax1.text(0.90, 0.99, 'A',
         horizontalalignment='left',
         verticalalignment='top',
@@ -243,7 +243,7 @@ plt.imshow(P2b,origin='lower',
                 extent=[np.min(xbin2b),np.max(xbin2b),np.min(ybin2b),np.max(ybin2b)],
                 cmap=cm.grayC,norm=colors.Normalize(vmin=0,vmax=1),aspect='auto')
 plt.xlabel('Mean Precip [mm/day]')
-plt.ylabel('MAT [C]')
+plt.ylabel('MAT [$^\circ$C]')
 ax4.text(0.90, 0.99, 'D',
         horizontalalignment='left',
         verticalalignment='top',
@@ -303,7 +303,7 @@ cbar1.ax.set_ylabel('Density')
 plt.xlim((np.min(xbin1a),np.max(xbin1a)))
 plt.ylim((np.min(ybin1a),np.max(ybin1a)))
 plt.xlabel('Mean Precip [mm/day]')
-plt.ylabel('MAT [C]')
+plt.ylabel('MAT [$^\circ$C]')
 
 plt.rcdefaults()
 # f1.savefig('figure_x2a.pdf',dpi='figure')

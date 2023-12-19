@@ -44,6 +44,8 @@ class GenerateRunoff:
     def __parse_pattern(self,sobj):
         if self.pattern=='emp':
             GenerateRunoff.read_emp(self)
+        elif self.pattern=='emp_rain':
+            GenerateRunoff.read_emp_rain(self)
         GenerateRunoff.update_r(self,sobj)
         if np.mod(self.window,2)==1:
             pass
@@ -65,6 +67,7 @@ class GenerateRunoff:
         pt = os.path.dirname(os.path.realpath(__file__))
         top = pd.read_csv(os.path.join(pt,'topo_snow_mean_relationships.csv'))
         sno = pd.read_csv(os.path.join(pt,'snowmelt_meanR_cR_relationships.csv'))
+        snosr = pd.read_csv(os.path.join(pt,'snowmelt_approx_sR_fit_sR_relationships.csv'))
         kr = pd.read_csv(os.path.join(pt,'ksn_relief_relationships.csv'))
         # Generate indices to isolate relationships of interest
         idx1 = (top['location']==self.location) & (top['relation_between']=='rlf to mR')
@@ -85,22 +88,83 @@ class GenerateRunoff:
         snow_1=sno['param1'].to_numpy()
         snow_2=sno['param2'].to_numpy()
         snow_func_vals=np.concatenate((snow_1.reshape(len(snow_1),1),snow_2.reshape(len(snow_1),1)),axis=1)
+        snowsr_form=snosr['relationship'].to_list()
+        snowsr_1=snosr['param1'].to_numpy()
+        snowsr_2=snosr['param2'].to_numpy()
+        snowsr_func_vals=np.concatenate((snowsr_1.reshape(len(snowsr_1),1),snowsr_2.reshape(len(snowsr_1),1)),axis=1)
         # Extract ksn relief relationships
         kr_slope=kr.loc[idx3,'param1'].to_numpy()[0]
         kr_inter=kr.loc[idx3,'param2'].to_numpy()[0]
         kr_func_vals=np.array([kr_slope,kr_inter])
         # Package and return
-        self.emp_values=[topo_func_vals,snow_bins,snow_form,snow_func_vals,kr_func_vals]
+        self.emp_values=[topo_func_vals,snow_bins,snow_form,snow_func_vals,kr_func_vals,snowsr_form,snowsr_func_vals]
 
-    def runoff_to_shape(self):
-        # r- runoff in mm_day
-        # c = a*mar^b
-        # default a and b from CONUS Rossi et al., 2016
-        mar=self.r_bin*365.25
-        c=self.cr_a*mar**self.cr_b
-        s=self.r_bin/gamma(1+(1/c))
-        self.cr_bin=c
-        self.sr_bin=s    
+    def read_emp_rain(self):
+        pt = os.path.dirname(os.path.realpath(__file__))
+        top = pd.read_csv(os.path.join(pt,'topo_snow_mean_relationships.csv'))
+        kr = pd.read_csv(os.path.join(pt,'ksn_relief_relationships.csv'))
+        crsr = pd.read_csv(os.path.join(pt,'rainfall_relationships.csv'))
+        # Generate indices to isolate relationships of interest
+        idx1 = (top['location']==self.location) & (top['relation_between']=='rlf to mR')
+        idx21 = crsr['function']=='rbar_to_cR'
+        idx22 = crsr['function']=='sRm_to_sRf'
+        idx3 = kr['location']==self.location
+        # Extract coefficients and exponents for the topography
+        rlf_coeff=top.loc[idx1,'param1'].to_numpy()[0]
+        rlf_expo=top.loc[idx1,'param2'].to_numpy()[0]
+        topo_func_vals=np.array([rlf_coeff,rlf_expo])
+        # Extract coefficients and exponents for cr and sr
+        cr_coeff=crsr.loc[idx21,'param1'].to_numpy()[0]
+        cr_exp=crsr.loc[idx21,'param2'].to_numpy()[0]
+        sr_slp=crsr.loc[idx22,'param1'].to_numpy()[0]
+        sr_int=crsr.loc[idx22,'param2'].to_numpy()[0]
+        crsr_func_vals=np.array([cr_coeff,cr_exp,sr_slp,sr_int])
+        # Extract ksn relief relationships
+        kr_slope=kr.loc[idx3,'param1'].to_numpy()[0]
+        kr_inter=kr.loc[idx3,'param2'].to_numpy()[0]
+        kr_func_vals=np.array([kr_slope,kr_inter])
+        # Package and return
+        self.emp_rain_values=[topo_func_vals,crsr_func_vals,kr_func_vals]  
+
+    def z_to_runoff_empirical_rain(self,sobj):
+        topo_func_vals=self.emp_rain_values[0]
+        kr_func_vals=self.emp_rain_values[2]
+        crsr_func_vals=self.emp_rain_values[1]
+        # Calculate ksn over whole profile
+        ksn=np.diff(sobj.z-sobj.zb)/np.diff(sobj.chi)
+        ksn=np.concatenate(([ksn[0]],ksn),axis=0)
+        # Estimate relief by bins based on the empirical relationship between ksn and relief
+        mean_ksn=np.bincount(sobj.ix,ksn,sobj.num_bins)[1:sobj.num_bins+1]/np.bincount(sobj.ix,None,sobj.num_bins)[1:sobj.num_bins+1]
+        if (self.kr_slope==None) & (self.kr_int==None):
+            rlf_Z=kr_func_vals[0]*mean_ksn + kr_func_vals[1]
+        elif (self.kr_slope!=None) & (self.kr_int!=None):
+            rlf_Z=self.kr_slope*mean_ksn + self.kr_int
+        # Apply threshold relief if provided
+        if self.max_rlf!=None:
+            rlf_Z[rlf_Z>self.max_rlf]=self.max_rlf
+        # Find index of first element in each bin
+        fix=np.concatenate(([1],np.diff(sobj.ix))).astype('bool')
+        # Use rlf_Z + base elevation of each segment to get max elevation
+        max_Z=rlf_Z+sobj.z[fix]        
+        # Convert these to mean runoff and snow percentages
+        r=topo_func_vals[0]*rlf_Z**topo_func_vals[1]  
+        # Perform checks and replacements - this should no longer be necessary
+        if self.min_runoff==None:
+            r[r<=0]=1e-5 # Set floor to avoid negative runoffs
+        else:
+            r[r<self.min_runoff]=self.min_runoff  
+        # Calculate cr and sr
+        cr=crsr_func_vals[0]*r**crsr_func_vals[1]
+        srm=r/gamma(1+(1/cr))
+        sr=crsr_func_vals[2]*srm + crsr_func_vals[3]
+        # At very low values of cR, sR can end up negative because of the linear fit
+        sr[sr<0]=srm[sr<0]
+        # Update values within instance
+        self.r_bin = r
+        self.cr_bin =cr
+        self.sr_bin = sr
+        self.max_Z_bin = max_Z
+        self.rlf_Z_bin = rlf_Z        
 
     def z_to_runoff_empirical(self,sobj):
         # Unpack list
@@ -109,6 +173,8 @@ class GenerateRunoff:
         snow_form=self.emp_values[2]
         snow_func_vals=self.emp_values[3]
         kr_func_vals=self.emp_values[4]
+        snowsr_form=self.emp_values[5]
+        snowsr_func_vals=self.emp_values[6]
         # Calculate ksn over whole profile
         ksn=np.diff(sobj.z-sobj.zb)/np.diff(sobj.chi)
         ksn=np.concatenate(([ksn[0]],ksn),axis=0)
@@ -128,7 +194,7 @@ class GenerateRunoff:
         # Convert these to mean runoff and snow percentages
         r=topo_func_vals[0]*rlf_Z**topo_func_vals[1]
         snp=topo_func_vals[2]*max_Z**topo_func_vals[3]
-        # Perform checks and replacements
+        # Perform checks and replacements - this should no longer be necessary
         if self.min_runoff==None:
             r[r<=0]=1e-5 # Set floor to avoid negative runoffs
         else:
@@ -137,6 +203,7 @@ class GenerateRunoff:
         snp[snp<0]=0 # Set floor for snow percent
         # Use mean r and snowmelt to predict cr
         cr=np.zeros(len(sobj.uix))
+        sr=np.zeros(len(sobj.uix))
         # Find which snow bin each segment belongs to
         nix=np.digitize(snp,snow_bins)-1
         for i in range(len(sobj.uix)):
@@ -145,8 +212,16 @@ class GenerateRunoff:
                 cr[i]=snow_func_vals[nix[i],0]*r[i] + snow_func_vals[nix[i],1]
             elif snow_form[nix[i]]=='power':
                 cr[i]=snow_func_vals[nix[i],0]*r[i] ** snow_func_vals[nix[i],1]
-        # Estimate sr from cr and mean
-        sr=r/gamma(1+(1/cr))
+            # Estimate sr from cr and mean
+            srm=r[i]/gamma(1+(1/cr[i]))
+            # Apply correction to scale
+            sr0=snowsr_func_vals[nix[i],0]*srm + snowsr_func_vals[nix[i],1]
+            # At very low values of cR, sR can end up negative because of the linear
+            # fit
+            if sr0>0:
+                sr[i]=sr0
+            else:
+                sr[i]=srm
         # Update values within instance
         self.r_bin = r
         self.cr_bin =cr
@@ -154,58 +229,68 @@ class GenerateRunoff:
         self.snp_bin = snp
         self.max_Z_bin = max_Z
         self.rlf_Z_bin = rlf_Z
+
+    # def runoff_to_shape(self):
+    #     # r- runoff in mm_day
+    #     # c = a*mar^b
+    #     # default a and b from CONUS Rossi et al., 2016
+    #     mar=self.r_bin*365.25
+    #     c=self.cr_a*mar**self.cr_b
+    #     s=self.r_bin/gamma(1+(1/c))
+    #     self.cr_bin=c
+    #     self.sr_bin=s  
+
+    # def z_to_runoff_linear(self,sobj):
+    #     # Define slope and y intercept based on inputs
+    #     m=(self.r_top-self.r_bottom)/(self.z_top-self.z_bottom)
+    #     b=self.r_top-(m*self.z_top)
+    #     # Generate binned runoffs
+    #     r=m*sobj.z_cents + b
+    #     if self.min_runoff==None:
+    #         r[r<=0]=1e-5 # Set floor to avoid negative runoffs
+    #     else:
+    #         r[r<self.min_runoff]=self.min_runoff
+    #     self.r_bin=r
         
-    def z_to_runoff_linear(self,sobj):
-        # Define slope and y intercept based on inputs
-        m=(self.r_top-self.r_bottom)/(self.z_top-self.z_bottom)
-        b=self.r_top-(m*self.z_top)
-        # Generate binned runoffs
-        r=m*sobj.z_cents + b
-        if self.min_runoff==None:
-            r[r<=0]=1e-5 # Set floor to avoid negative runoffs
-        else:
-            r[r<self.min_runoff]=self.min_runoff
-        self.r_bin=r
+    # def z_to_runoff_power(self,sobj):
+    #     # Define constants
+    #     a=(self.r_bottom-self.r_top)/(self.z_bottom**self.pexp - self.z_top**self.pexp)
+    #     c=self.r_bottom-a*self.z_bottom**self.pexp
+    #     # Generate binned runoffs
+    #     r=a*sobj.z_cents**self.pexp + c
+    #     if self.min_runoff==None:
+    #         r[r<=0]=1e-5 # Set floor to avoid negative runoffs
+    #     else:
+    #         r[r<self.min_runoff]=self.min_runoff
+    #     self.r_bin=r
         
-    def z_to_runoff_power(self,sobj):
-        # Define constants
-        a=(self.r_bottom-self.r_top)/(self.z_bottom**self.pexp - self.z_top**self.pexp)
-        c=self.r_bottom-a*self.z_bottom**self.pexp
-        # Generate binned runoffs
-        r=a*sobj.z_cents**self.pexp + c
-        if self.min_runoff==None:
-            r[r<=0]=1e-5 # Set floor to avoid negative runoffs
-        else:
-            r[r<self.min_runoff]=self.min_runoff
-        self.r_bin=r
-        
-    def z_to_runoff_peaked(self,sobj):        
-        # Find x and z position of peak
-        xpos=np.max(sobj.x)*self.cpos
-        xix=np.argmin(np.abs(sobj.x-xpos))
-        z_peak=sobj.z[xix]
-        # Find closest pin of peak
-        zix=np.argmin(np.abs(sobj.z_cents-z_peak))
-        zb_peak=sobj.z_cents[zix]
-        # Determine scale if rc based on elevation of profile
-        sf=(np.max(sobj.z_cents)/self.z_top)
-        if sf>1:
-            sf=1
-        r_center=self.r_center*sf
-        # Determine slopes and y-intercepts for each part
-        m1=(r_center-self.r_bottom)/(zb_peak-self.z_bottom)
-        b1=r_center-(m1*zb_peak)
-        m2=(self.r_top-r_center)/(self.z_top-zb_peak)
-        b2=self.r_top-(m2*self.z_top)
-        # Fill runoff in piecewise
-        r=np.zeros(sobj.z_cents.shape)
-        r[0:zix]=m1*sobj.z_cents[0:zix]+b1
-        r[zix:len(r)]=m2*sobj.z_cents[zix:len(r)]+b2
-        if self.min_runoff==None:
-            r[r<=0]=1e-5 # Set floor to avoid negative runoffs
-        else:
-            r[r<self.min_runoff]=self.min_runoff
-        self.r_bin = r
+    # def z_to_runoff_peaked(self,sobj):        
+    #     # Find x and z position of peak
+    #     xpos=np.max(sobj.x)*self.cpos
+    #     xix=np.argmin(np.abs(sobj.x-xpos))
+    #     z_peak=sobj.z[xix]
+    #     # Find closest pin of peak
+    #     zix=np.argmin(np.abs(sobj.z_cents-z_peak))
+    #     zb_peak=sobj.z_cents[zix]
+    #     # Determine scale if rc based on elevation of profile
+    #     sf=(np.max(sobj.z_cents)/self.z_top)
+    #     if sf>1:
+    #         sf=1
+    #     r_center=self.r_center*sf
+    #     # Determine slopes and y-intercepts for each part
+    #     m1=(r_center-self.r_bottom)/(zb_peak-self.z_bottom)
+    #     b1=r_center-(m1*zb_peak)
+    #     m2=(self.r_top-r_center)/(self.z_top-zb_peak)
+    #     b2=self.r_top-(m2*self.z_top)
+    #     # Fill runoff in piecewise
+    #     r=np.zeros(sobj.z_cents.shape)
+    #     r[0:zix]=m1*sobj.z_cents[0:zix]+b1
+    #     r[zix:len(r)]=m2*sobj.z_cents[zix:len(r)]+b2
+    #     if self.min_runoff==None:
+    #         r[r<=0]=1e-5 # Set floor to avoid negative runoffs
+    #     else:
+    #         r[r<self.min_runoff]=self.min_runoff
+    #     self.r_bin = r
         
     def constant_runoff(self,sobj):
         r=np.ones(sobj.uix.shape)*self.r_constant
@@ -265,18 +350,20 @@ class GenerateRunoff:
     def update_r(self,sobj):
         if self.pattern=='emp':
             GenerateRunoff.z_to_runoff_empirical(self,sobj)
-        elif self.pattern=='linear':
-            GenerateRunoff.z_to_runoff_linear(self,sobj)
-            GenerateRunoff.runoff_to_shape(self)
-        elif self.pattern=='power':
-            GenerateRunoff.z_to_runoff_power(self,sobj)
-            GenerateRunoff.runoff_to_shape(self)
-        elif self.pattern=='peaked':
-            GenerateRunoff.z_to_runoff_peaked(self,sobj)
-            GenerateRunoff.runoff_to_shape(self)
-        elif self.pattern=='constant':
-            GenerateRunoff.constant_runoff(self,sobj)
-            GenerateRunoff.runoff_to_shape(self)
+        elif self.pattern=='emp_rain':
+            GenerateRunoff.z_to_runoff_empirical_rain(self,sobj)
+        # elif self.pattern=='linear':
+        #     GenerateRunoff.z_to_runoff_linear(self,sobj)
+        #     GenerateRunoff.runoff_to_shape(self)
+        # elif self.pattern=='power':
+        #     GenerateRunoff.z_to_runoff_power(self,sobj)
+        #     GenerateRunoff.runoff_to_shape(self)
+        # elif self.pattern=='peaked':
+        #     GenerateRunoff.z_to_runoff_peaked(self,sobj)
+        #     GenerateRunoff.runoff_to_shape(self)
+        # elif self.pattern=='constant':
+        #     GenerateRunoff.constant_runoff(self,sobj)
+        #     GenerateRunoff.runoff_to_shape(self)
         GenerateRunoff.route_binned(self,sobj)
         
     def spim_calc_K_and_Q(self,spobj,sobj,eobj):

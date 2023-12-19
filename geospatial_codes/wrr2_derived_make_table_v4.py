@@ -178,6 +178,9 @@ rlf=rstr1.read(1)
 rstr3=rasterio.open(master_location+'hyd_glo_dem_15s/maxZ_upstream.tif')
 zup=rstr3.read(1)
 
+rstr4=rasterio.open(master_location+'hyd_glo_dem_15s/hsheds_2500rlf_wgs84_rsmp.tif')
+rlf25=rstr4.read(1)
+
 r_res=360/rstr.width
 
 z_min=np.zeros(lon.shape)
@@ -191,6 +194,10 @@ zu_mean=np.zeros(lon.shape)
 rlf_min=np.zeros(lon.shape)
 rlf_mean=np.zeros(lon.shape)
 rlf_max=np.zeros(lon.shape)
+
+rlf25_min=np.zeros(lon.shape)
+rlf25_mean=np.zeros(lon.shape)
+rlf25_max=np.zeros(lon.shape)
 
 # Accumulated Upstream Values
 p_rstr=rasterio.open(master_location+'wrr2_raster_outputs/upstream_means/wrr2_up_P.tif')
@@ -287,6 +294,18 @@ for i in range(len(lon)):
         rlf_min[i]=np.nan
         rlf_mean[i]=np.nan
         rlf_max[i]=np.nan
+        
+    rlf250=rlf25[r,c]
+    idx25=rlf250==rstr4.nodata
+    rlf250f=rlf250[~idx25]
+    if rlf250f.shape[0]>0:
+        rlf25_min[i]=np.nanmin(rlf250f)
+        rlf25_mean[i]=np.nanmean(rlf250f)
+        rlf25_max[i]=np.nanmax(rlf250f)
+    else:
+        rlf25_min[i]=np.nan
+        rlf25_mean[i]=np.nan
+        rlf25_max[i]=np.nan
         
     ## UPSTREAM RASTERS
     xv=np.arange(x-0.25/2,(x+0.25/2),up_res)
@@ -401,6 +420,9 @@ df=pd.DataFrame(data={'longitude':lon,
                       'min_rlf':rlf_min,
                       'mean_rlf':rlf_mean,
                       'max_rlf':rlf_max,
+                      'min_rlf25':rlf25_min,
+                      'mean_rlf25':rlf25_mean,
+                      'max_rlf25':rlf25_max,
                       'mean_runoff':rm,
                       'mean_precip':p,
                       'r_std':rst,
@@ -446,6 +468,6 @@ df=pd.DataFrame(data={'longitude':lon,
                       'et_std':etst,
                       'pet_mean':pet,
                       'pet_std':petst})
-df.to_csv('wrr2_derived_data_v3.csv')
+df.to_csv('wrr2_derived_data_v4.csv')
 
 

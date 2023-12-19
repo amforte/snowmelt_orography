@@ -19,6 +19,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from scipy import optimize
 import string
+from scipy.special import gamma
 
 
 def linear(B,x):
@@ -89,7 +90,7 @@ df_hcdn=df.loc[hcdn_idx,:]
 perc_snow=df_hcdn['QSM']/df_hcdn['R']
 
 ## Load global
-df_global=pd.read_csv(master_location+'wrr2_derived_data_v3.csv')
+df_global=pd.read_csv(master_location+'wrr2_derived_data_v4.csv')
 df_global=df_global.drop(index=df_global.index[np.isnan(df_global['mean_z'])])
 df_global=df_global.reset_index(drop=True)
 
@@ -115,7 +116,9 @@ r=np.linspace(0.1,25,100)
 # Define model
 linmod=odr.Model(linear)
 
-
+# Calculate estimated scale factor based on mean
+s_f=df_global_s['mean_runoff']/gamma(1+1/df_global_s['r_c1'])
+hcdn_s_f=df_hcdn['SlicedMeanR']/gamma(1+1/df_hcdn['SlicedRS1'])
 
 SMALL_SIZE = 10
 MEDIUM_SIZE = 12
@@ -131,12 +134,13 @@ plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 bv=np.concatenate((np.arange(0,0.80,0.05),[1.0]),axis=0)
 xb=np.linspace(0,10,50)
 yb=np.linspace(0,2,50)
+xbs=np.linspace(0,15,50)
+ybs=np.linspace(0,15,50)
 
-
-f1=plt.figure(1,figsize=(8,4))
+f1=plt.figure(1,figsize=(8,8))
 f1.set_dpi(250)
 
-ax11=plt.subplot(1,2,1)
+ax11=plt.subplot(2,2,1)
 idx1=(global_perc_snow<=0.35) & (df_global_s['r_c1']>0)
 g2idx1=perc_snow<=0.35
 # ax1.scatter(df_global_s.loc[idx1,'mean_runoff'],df_global_s.loc[idx1,'r_c1'],c='k',s=1)
@@ -155,7 +159,7 @@ ax11.text(0.01, 0.99, 'A',
         transform=ax11.transAxes,
         fontsize=12,fontweight='extra bold')
 
-ax12=plt.subplot(1,2,2)
+ax12=plt.subplot(2,2,2)
 idx2=(global_perc_snow>0.35) & (df_global_s['r_c1']>0)
 g2idx2=perc_snow>0.35
 # ax2.scatter(df_global_s.loc[idx2,'mean_runoff'],df_global_s.loc[idx2,'r_c1'],c='k',s=1)
@@ -173,6 +177,46 @@ ax12.text(0.01, 0.99, 'B',
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax12.transAxes,
+        fontsize=12,fontweight='extra bold')
+
+
+ax13=plt.subplot(2,2,3)
+idx1=(global_perc_snow<=0.35) & (df_global_s['r_c1']>0)
+g2idx1=perc_snow<=0.35
+# ax1.scatter(df_global_s.loc[idx1,'mean_runoff'],df_global_s.loc[idx1,'r_c1'],c='k',s=1)
+ax13.scatter(hcdn_s_f[g2idx1],df_hcdn.loc[g2idx1,'SlicedRS1'],zorder=2,s=10,edgecolor='k',facecolor='w',label='HCDN-2009')
+sc13=plt.hist2d(s_f[idx1],df_global_s.loc[idx1,'r_s1'],[xbs,ybs],norm=colors.LogNorm(vmin=1,vmax=1000),cmap=cm.berlin)
+ax13.set_xlabel('Scale Estimated from WaterGAP3 Mean')
+ax13.set_ylabel('WaterGAP3 Scale Parameter')
+ax13.set_xlim((0,15))
+ax13.set_ylim((0,15))
+ax13.set_title('Snowmelt Fraction < 0.35')
+ax13.legend(loc=4)
+cbar11=plt.colorbar(sc13[3],ax=ax13)
+ax13.text(0.01, 0.99, 'C',
+        horizontalalignment='left',
+        verticalalignment='top',
+        transform=ax13.transAxes,
+        fontsize=12,fontweight='extra bold')
+
+ax14=plt.subplot(2,2,4)
+idx2=(global_perc_snow>0.35) & (df_global_s['r_c1']>0)
+g2idx2=perc_snow>0.35
+# ax2.scatter(df_global_s.loc[idx2,'mean_runoff'],df_global_s.loc[idx2,'r_c1'],c='k',s=1)
+ax14.scatter(hcdn_s_f[g2idx2],df_hcdn.loc[g2idx2,'SlicedRC1'],zorder=2,s=10,edgecolor='k',facecolor='w',label='HCDN-2009')
+sc14=plt.hist2d(s_f[idx2],df_global_s.loc[idx2,'r_s1'],[xbs,ybs],norm=colors.LogNorm(vmin=1,vmax=1000),cmap=cm.berlin)
+ax14.set_xlabel('Scale Estimated from WaterGAP3 Mean')
+ax14.set_ylabel('WaterGAP3 Scale Parameter')
+ax14.set_xlim((0,15))
+ax14.set_ylim((0,15))
+ax14.set_title('Snowmelt Fraction > 0.35')
+ax14.legend(loc=4)
+cbar12=plt.colorbar(sc14[3],ax=ax14)
+cbar12.ax.set_ylabel('Density')
+ax14.text(0.01, 0.99, 'D',
+        horizontalalignment='left',
+        verticalalignment='top',
+        transform=ax14.transAxes,
         fontsize=12,fontweight='extra bold')
 
 plt.tight_layout()
@@ -231,10 +275,13 @@ for i in range(len(bv)-1):
     
     rmse_array=np.array([rmse1,rmse2])
     if np.argmin(rmse_array)==0:
-        plt.plot(r,logcoeff*r**logexp,c='k',linewidth=1,label=lab1)
+        eq='\n'+r'c$_{R}$ = '+str(np.round(logcoeff,2))+r'$\bar{R}$ $^{'+str(np.round(logexp,3))+'}$'
+        
+        plt.plot(r,logcoeff*r**logexp,c='k',linewidth=1,label=lab1+eq)
         plt.plot(r,linslp*r+linint,c='k',linestyle=':',label=lab2)
     elif np.argmin(rmse_array)==1:
-        plt.plot(r,linslp*r+linint,c='k',linewidth=1,label=lab2)
+        eq='\n' + r'c$_{R}$ = '+str(np.round(linslp,2))+r'$\bar{R}$ + '+str(np.round(linint,3))
+        plt.plot(r,linslp*r+linint,c='k',linewidth=1,label=lab2+eq)
         plt.plot(r,logcoeff*r**logexp,c='k',linestyle=':',label=lab1)
         
     if bv[i+1]<=0.35:
@@ -259,7 +306,77 @@ for i in range(len(bv)-1):
     plt.title(str(np.round(bv[i],2))+' < Snowmelt Fraction <'+str(np.round(bv[i+1],2))) 
     
 plt.tight_layout()
+
+
+f3=plt.figure(3,figsize=(11,8))
+f3.set_dpi(250)
+
+bv=np.concatenate((np.arange(0,0.80,0.05),[1.0]),axis=0)
+xb=np.linspace(0,15,75)
+yb=np.linspace(0,15,75)
+
+
+for i in range(len(bv)-1):
+    ax1=plt.subplot(4,4,i+1)
+    gidx=(global_perc_snow>=bv[i]) & (global_perc_snow<bv[i+1]) & (df_global_s['r_c1']>0)
+    g2idx1=(perc_snow>=bv[i]) & (perc_snow<bv[i+1])
+    sc1=plt.hist2d(s_f[gidx],df_global_s.loc[gidx,'r_s1'],[xb,yb],norm=colors.LogNorm(vmin=1,vmax=250),cmap=cm.berlin)
+    if i==0:
+        ax1.scatter(hcdn_s_f[g2idx1],df_hcdn.loc[g2idx1,'SlicedRS1'],zorder=2,s=10,edgecolor='k',facecolor='w',label='HCDN-2009')
+    else:
+        ax1.scatter(hcdn_s_f[g2idx1],df_hcdn.loc[g2idx1,'SlicedRS1'],zorder=2,s=10,edgecolor='k',facecolor='w')
+    
+    cbar1=plt.colorbar(sc1[3],ax=ax1)
+
+    ax1.text(0.90, 0.15, letters[i],
+            horizontalalignment='left',
+            verticalalignment='top',
+            transform=ax1.transAxes,
+            fontsize=12,fontweight='extra bold')
+    
+    fdlin=odr.Data(s_f[gidx],df_global_s.loc[gidx,'r_s1'])
+    odrlin=odr.ODR(fdlin,linmod,beta0=[1,0.1])
+    outlin=odrlin.run()
+    linslp=outlin.beta[0]
+    linint=outlin.beta[1]
+    linchisquare=outlin.res_var
+    sr2_pred=linslp*s_f[gidx]+linint
+    rmse2=np.sqrt(np.sum((sr2_pred-df_global_s.loc[gidx,'r_s1'])**2)/len(sr2_pred))
+    lab2='RMSE = '+str(np.round(rmse2,4))
+    
+
+    eq='\n' + r'X$_{0f}$ = '+str(np.round(linslp,2))+r'X$_{0m}$ + '+str(np.round(linint,3))
+    plt.plot(r,linslp*r+linint,c='k',linewidth=1,label=lab2+eq)
+
+
+    if bv[i+1]<=0.35:
+        ax13.plot(r,linslp*r+linint,c='k',linewidth=bv[i+1]*3,linestyle='--')
+    else:
+        ax14.plot(r,linslp*r+linint,c='k',linewidth=bv[i+1],linestyle='--')
+
+    if (i==0) | (i==4) | (i==8) | (i==12):
+        plt.ylabel('WG3 Scale Fit')
+    if i>=12:
+        plt.xlabel('WG3 Scale Mean Estimate')
+    if (i==3) | (i==7) | (i==11) | (i==15):
+        cbar1.ax.set_ylabel('Density')
+        
+    if bv[i]>=0.5:
+        plt.xlim((0,7.5))
+        plt.ylim((0,7.5))
+    else:
+        plt.xlim((0,15))
+        plt.ylim((0,15))
+
+    plt.title(str(np.round(bv[i],2))+' < Snowmelt Fraction <'+str(np.round(bv[i+1],2))) 
+    
+    plt.legend(loc='upper left')
+plt.tight_layout()
+
+
+
 plt.rcdefaults()
 
 f1.savefig('P1_figure5.pdf',dpi="figure")
 f2.savefig('P1_figure4.pdf',dpi="figure")
+f3.savefig('P1_SUP_figureS1.pdf',dpi="figure")

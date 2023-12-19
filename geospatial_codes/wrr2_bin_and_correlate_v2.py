@@ -81,7 +81,8 @@ def bin2d_rolling(dfs,x,y,x1,y1,min_num,p_sig,corr_type,xbin,ybin,bin_size,shift
 
 ## Load global
 master_location='/Volumes/Choruh/Data/snowmelt_project/'
-df_global=pd.read_csv(master_location+'wrr2_derived_data_v3.csv')
+# master_location='/Users/aforte/Documents/Python/snowmelt/'
+df_global=pd.read_csv(master_location+'wrr2_derived_data_v4.csv')
 df_global=df_global.drop(index=df_global.index[np.isnan(df_global['mean_z'])])
 df_global=df_global.reset_index(drop=True)
 
@@ -90,14 +91,14 @@ percb_cutoff=0.25
 grlf=df_global['max_z']-df_global['min_z']
 global_perc_base=df_global['qsb']/df_global['mean_runoff']
 
-rem_idx=(grlf<=500) | (df_global['mean_z']<=250) | (global_perc_base>percb_cutoff) | (df_global['mean_rlf']<250)
+rem_idx=(grlf<=500) | (df_global['mean_z']<=250) | (global_perc_base>percb_cutoff) | (df_global['mean_rlf25']<250)
 df_global_s=df_global.drop(df_global.index[rem_idx])
 df_global_s=df_global_s.reset_index(drop=True)
 
 xbin=np.arange(-180,180,2)
 ybin=np.arange(-90,90,2)
 
-[RHO1,NUM1]=bin2d_rolling(df_global_s,df_global_s['longitude'],df_global_s['latitude'],df_global_s['mean_rlf'],df_global_s['mean_runoff'],
+[RHO1,NUM1]=bin2d_rolling(df_global_s,df_global_s['longitude'],df_global_s['latitude'],df_global_s['mean_rlf25'],df_global_s['mean_runoff'],
               10,0.01,'spearman',xbin,ybin,2,0.25)
 
 
@@ -165,7 +166,7 @@ RHO1[rows,cols]=mn_rho1
 RHO2[rows,cols]=mn_rho2
 
 with rasterio.open(
-        master_location+'wrr2_raster_outputs/rlf_runoff_corr.tif',
+        master_location+'wrr2_raster_outputs/rlf_runoff_corr2.tif',
         'w',
         driver='GTiff',
         height=RHO1.shape[0],
