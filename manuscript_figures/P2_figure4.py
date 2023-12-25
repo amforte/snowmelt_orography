@@ -95,6 +95,27 @@ plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
 plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
+f2=plt.figure(2,figsize=(8,4),layout='constrained')
+ax16=f2.add_subplot(1,3,1)
+ax16.set_xlabel(r'$\chi$')
+ax16.set_ylabel(r'$\Delta$ Z (spatial-STIM - point-STIM) [km]')
+ax16.set_ylim((-0.7,0.9))
+ax16.set_title('Greater Caucasus')
+
+ax17=f2.add_subplot(1,3,2)
+ax17.set_xlabel(r'$\chi$')
+# ax17.set_ylabel(r'$\Delta$ Elevation [km]')
+ax17.set_ylim((-0.7,0.9))
+ax17.set_title('Alps')
+
+ax18=f2.add_subplot(1,3,3)
+ax18.set_xlabel(r'$\chi$')
+# ax18.set_ylabel(r'$\Delta$ Elevation [km]')
+ax18.set_ylim((-0.7,0.9))
+ax18.set_title('British Columbia')
+
+
+
 f1=plt.figure(1,figsize=(8,10),dpi=300,layout='constrained')
 gs=gridspec.GridSpec(5,7,figure=f1)
 # Elevation
@@ -210,6 +231,9 @@ ax15a.set_xticks([1,2,3])
 ax15a.set_xticklabels(['GC','Alps','BC'])
 
 
+
+
+
 col_vec=colors.Normalize(vmin=0.25,vmax=8)
 
 for i in range(len(u_vec)):
@@ -223,6 +247,7 @@ for i in range(len(u_vec)):
     # Extract shared x
     x=gc_duI['x']/1000
     xc=gc_duI['x_center']/1000
+    chi=gc_duI['chi']
     
     # GC
     gc_duIz=np.mean(gc_duI['zout']/1000,axis=0)
@@ -241,6 +266,18 @@ for i in range(len(u_vec)):
     gc_dlIksn=np.mean(np.diff(gc_dlI['zout'],axis=1)/np.diff(gc_dlI['chi']),axis=0)
     gc_dlIksn=np.concatenate(([gc_dlIksn[0]],gc_dlIksn),axis=0)
     gc_dlIksn=np.bincount(sObj.ix,gc_dlIksn,sObj.num_bins)[1:sObj.num_bins+1]/np.bincount(sObj.ix,None,sObj.num_bins)[1:sObj.num_bins+1]
+    
+    
+    # Compare predictions of point STIM for profile shape
+    stdy=st.StimSteady()
+    [ksl,el,_]=stdy.stim_range_dim(np.mean(gc_dlImr),np.mean(gc_dlIcr),min_ksn=25,space_type='lin')
+    ixl=np.argmin(np.abs(el-u_vec[i]*1000))
+    [ksu,eu,_]=stdy.stim_range_dim(np.mean(gc_duImr),np.mean(gc_duIcr),min_ksn=25,space_type='lin')
+    ixu=np.argmin(np.abs(eu-u_vec[i]*1000)) 
+    
+    ax16.plot(chi,gc_dlIz-chi*ksl[ixl]/1000,linestyle='--',c=cm.acton_r(col_vec(u_vec[i])))
+    ax16.plot(chi,gc_duIz-chi*ksu[ixl]/1000,linestyle='-',c=cm.acton_r(col_vec(u_vec[i])))    
+    
     
 
     if i==5:
@@ -327,6 +364,17 @@ for i in range(len(u_vec)):
     
     ax14.plot(xc,a_duIcr,linestyle='-',c=cm.acton_r(col_vec(u_vec[i])))
     ax14.plot(xc,a_dlIcr,linestyle='--',c=cm.acton_r(col_vec(u_vec[i])))  
+    
+    
+    # Compare predictions of point STIM for profile shape
+    stdy=st.StimSteady()
+    [ksl,el,_]=stdy.stim_range_dim(np.mean(a_dlImr),np.mean(a_dlIcr),min_ksn=25,space_type='lin')
+    ixl=np.argmin(np.abs(el-u_vec[i]*1000))
+    [ksu,eu,_]=stdy.stim_range_dim(np.mean(a_duImr),np.mean(a_duIcr),min_ksn=25,space_type='lin')
+    ixu=np.argmin(np.abs(eu-u_vec[i]*1000)) 
+    
+    ax17.plot(chi,a_dlIz-chi*ksl[ixl]/1000,linestyle='--',c=cm.acton_r(col_vec(u_vec[i])))
+    ax17.plot(chi,a_duIz-chi*ksu[ixl]/1000,linestyle='-',c=cm.acton_r(col_vec(u_vec[i])))
 
     # BC
     bc_duIz=np.mean(bc_duI['zout']/1000,axis=0)
@@ -361,6 +409,16 @@ for i in range(len(u_vec)):
     ax15.plot(xc,bc_duIcr,linestyle='-',c=cm.acton_r(col_vec(u_vec[i])))
     ax15.plot(xc,bc_dlIcr,linestyle='--',c=cm.acton_r(col_vec(u_vec[i])))  
     
+    # Compare predictions of point STIM for profile shape
+    stdy=st.StimSteady()
+    [ksl,el,_]=stdy.stim_range_dim(np.mean(bc_dlImr),np.mean(bc_dlIcr),min_ksn=25,space_type='lin')
+    ixl=np.argmin(np.abs(el-u_vec[i]*1000))
+    [ksu,eu,_]=stdy.stim_range_dim(np.mean(bc_duImr),np.mean(bc_duIcr),min_ksn=25,space_type='lin')
+    ixu=np.argmin(np.abs(eu-u_vec[i]*1000)) 
+    
+    ax18.plot(chi,bc_dlIz-chi*ksl[ixl]/1000,linestyle='--',c=cm.acton_r(col_vec(u_vec[i])))
+    ax18.plot(chi,bc_duIz-chi*ksu[ixl]/1000,linestyle='-',c=cm.acton_r(col_vec(u_vec[i])))
+    
     if i==0:
         norm=colors.Normalize(vmin=0.25,vmax=8)
         cbar1=plt.colorbar(cmm.ScalarMappable(norm=norm,cmap=cm.acton_r),ax=ax13,orientation='horizontal',shrink=0.8)
@@ -371,6 +429,17 @@ for i in range(len(u_vec)):
         
         cbar3=plt.colorbar(cmm.ScalarMappable(norm=norm,cmap=cm.acton_r),ax=ax15,orientation='horizontal',shrink=0.8)
         cbar3.ax.set_xlabel('Uplift Rate [m/Myr]')
+        
+        cbar4=plt.colorbar(cmm.ScalarMappable(norm=norm,cmap=cm.acton_r),ax=ax16,orientation='horizontal',shrink=0.8)
+        cbar4.ax.set_xlabel('Uplift Rate [m/Myr]')
+        
+        cbar5=plt.colorbar(cmm.ScalarMappable(norm=norm,cmap=cm.acton_r),ax=ax17,orientation='horizontal',shrink=0.8)
+        cbar5.ax.set_xlabel('Uplift Rate [m/Myr]')
+        
+        cbar6=plt.colorbar(cmm.ScalarMappable(norm=norm,cmap=cm.acton_r),ax=ax18,orientation='horizontal',shrink=0.8)
+        cbar6.ax.set_xlabel('Uplift Rate [m/Myr]')        
+        
+        
     if i==5:    
         ax3a.scatter(0.9,np.mean(gc_duIz),color=cm.acton_r(col_vec(u_vec[i])),marker='o',s=20,label='Unlinked')
         ax3a.scatter(1.1,np.mean(gc_dlIz),edgecolor=cm.acton_r(col_vec(u_vec[i])),facecolor='w',marker='s',s=20,label='Linked')
