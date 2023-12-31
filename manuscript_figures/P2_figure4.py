@@ -98,7 +98,7 @@ plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 f2=plt.figure(2,figsize=(8,4),layout='constrained')
 ax16=f2.add_subplot(1,3,1)
 ax16.set_xlabel(r'$\chi$')
-ax16.set_ylabel(r'$\Delta$ Z (spatial-STIM - point-STIM) [km]')
+ax16.set_ylabel(r'$\Delta$ Z (spatial-STIM - STIM) [km]')
 ax16.set_ylim((-0.7,0.9))
 ax16.set_title('Greater Caucasus')
 

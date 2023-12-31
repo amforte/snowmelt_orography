@@ -608,7 +608,7 @@ class ModelComparison:
             ax2.set_xlabel('Model Time [Myr]')
             
             ax3=f1.add_subplot(gs[5,i])
-            ax3.set_xlabel('Avgerage Erosion Rate [mm/yr]')
+            ax3.set_xlabel('Average Erosion Rate [mm/yr]')
     
             ax1=f1.add_subplot(gs[0:3,i])
             ax1.set_title(self.descript_list[i])
