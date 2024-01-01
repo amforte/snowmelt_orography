@@ -1,20 +1,20 @@
 # ReadMe #
 
-This repository contains supplemental data and codes for the two part manuscript "Stochastic in Space and Time: Part 1, Characterizing Orographic Gradients in Mean Runoff and Daily Runoff Variability" and "Stochastic in Space and Time: Part 2, Effects of Simulating Orographic Gradients in Daily Runoff Variability on Bedrock River Incision" by Forte & Rossi in the Journal of Geophysical Research - Earth Surface. Below are brief descriptions of categories of items included in this repository. Note that the majority of processed data and all individual model results are hosted in a separate [Zenodo Repository](https://doi.org/10.5281/zenodo.7665887).
+This repository contains supplemental data and codes for the two part manuscript "Stochastic in Space and Time: Part 1, Characterizing Orographic Gradients in Mean Runoff and Daily Runoff Variability" and "Stochastic in Space and Time: Part 2, Effects of Simulating Orographic Gradients in Daily Runoff Variability on Bedrock River Incision" by Forte & Rossi in the Journal of Geophysical Research - Earth Surface. Below are brief descriptions of categories of items included in this repository. Note that the majority of processed data and all individual model results are hosted in a separate [Zenodo Repository](https://doi.org/10.5281/zenodo.10407347).
 
 ## Repository Contents
 ### geospatial_codes
-Processing codes for analyzing either WaterGAP3 or GAGES II datasets and/or derivatives of these datasets. Majority of results of these scripts are stored in the related [Zenodo Repository](https://doi.org/10.5281/zenodo.7665887).
+Processing codes for analyzing either WaterGAP3 or GAGES II datasets and/or derivatives of these datasets. Majority of results of these scripts are stored in the related [Zenodo Repository](https://doi.org/10.5281/zenodo.10407347).
 ### manuscript_figures
 Codes for generating the main text and supplmental figures for the in review manuscript
 ### model_runs
-Model run scripts for all of the presented models. Note that outputs of the model are provided in the related [Zenodo Repository](https://doi.org/10.5281/zenodo.7665887).
+Model run scripts for all of the presented models. Note that outputs of the model are provided in the related [Zenodo Repository](https://doi.org/10.5281/zenodo.10407347).
 ### stimpy
 Python codes for the modified 1D stocthastic threshold incision model, i.e., spatial-STIM
 
 ## Notes
 ### Raw Data
-This repository primarily includes processing scripts to generate the processed datasets or figures, but it does include some of the processed data in the form of various data tables that are used in some of the scripts. Larger derived processed data and model outputs are hosted in a separate repository available on the related [Zenodo Repository](https://doi.org/10.5281/zenodo.7665887). These codes make use of a variety of publically available datasets (e.g., WaterGAP3 from Water Resources Reanalysis v2, GAGES II, etc.) that we do not rehost as we do not have the rights to distribute these data (see following section). We do provide the processing scripts that produced the derived products and those derived products.
+This repository primarily includes processing scripts to generate the processed datasets or figures, but it does include some of the processed data in the form of various data tables that are used in some of the scripts. Larger derived processed data and model outputs are hosted in a separate repository available on the related [Zenodo Repository](https://doi.org/10.5281/zenodo.10407347). These codes make use of a variety of publically available datasets (e.g., WaterGAP3 from Water Resources Reanalysis v2, GAGES II, etc.) that we do not rehost as we do not have the rights to distribute these data (see following section). We do provide the processing scripts that produced the derived products and those derived products.
 ### Required Publically Hosted Data
 To successfully reproduce the analyses presented here, a variety of publically available data is required. Generally, in each script that makes use of these data sets, they are stored in a central location (denoted as 'master_location' in the codes), which you should update to an appropriate location on your machine if you wish to rerun or modify any of these scripts. The specific data required are:
 * gagesII timeseries and watershed metadata from the [USGS](https://cmerwebmap.cr.usgs.gov/catalog/item/5788f619e4b0d27deb389055)
