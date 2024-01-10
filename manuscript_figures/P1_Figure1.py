@@ -133,8 +133,8 @@ plt.ylabel('Shape Parameter')
 
 plt.rcdefaults()
 plt.tight_layout()
-# f1.savefig('P1_figure1.pdf',dpi='figure')
-f1.savefig('P1_figure1.png',dpi='figure')
+f1.savefig('P1_figure1.pdf',dpi='figure')
+# f1.savefig('P1_figure1.png',dpi='figure')
 
 
 
